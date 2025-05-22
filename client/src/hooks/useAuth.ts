@@ -76,11 +76,6 @@ export function useAuth() {
         title: "Login successful",
         description: `Welcome back, ${data.fullName}!`,
       });
-      
-      // Use simple window.location
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
     },
     onError: (error: Error) => {
       setIsAuthenticated(false);

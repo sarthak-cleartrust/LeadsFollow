@@ -70,12 +70,7 @@ export default function Auth() {
   // Form submit handlers
   const onLogin = (data: LoginFormValues) => {
     login(data);
-    // Add manual redirect after successful login
-    setTimeout(() => {
-      if (isAuthenticated) {
-        window.location.href = "/";
-      }
-    }, 500);
+    // No need for manual redirect as the App component will handle this
   };
   
   const onRegister = (data: RegisterFormValues) => {

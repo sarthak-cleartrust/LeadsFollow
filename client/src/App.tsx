@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -13,30 +12,26 @@ import Sidebar from "@/components/layout/Sidebar";
 
 function App() {
   const { user, isLoading } = useAuth();
-  const [location, setLocation] = useLocation();
-  const [isAppReady, setIsAppReady] = useState(false);
   
-  useEffect(() => {
-    if (!isLoading) {
-      setIsAppReady(true);
-    }
-  }, [isLoading]);
-
-  // Show a loading spinner while the application is initializing
-  if (!isAppReady) {
+  // Show a loading spinner while checking authentication
+  if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p>Loading application...</p>
+          <p>Loading LeadFollow...</p>
         </div>
       </div>
     );
   }
   
-  // Show authentication page if no user
+  // Show login/register page if not logged in
   if (!user) {
-    return <Auth />;
+    return (
+      <div className="min-h-screen">
+        <Auth />
+      </div>
+    );
   }
   
   // Show main application with authenticated layout
@@ -49,6 +44,7 @@ function App() {
           <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
             <Switch>
               <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
               <Route path="/prospects" component={Prospects} />
               <Route path="/follow-ups" component={FollowUps} />
               <Route path="/settings" component={Settings} />
