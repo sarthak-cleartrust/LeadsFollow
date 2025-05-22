@@ -182,11 +182,37 @@ export default function Settings() {
                           variant="destructive" 
                           size="sm"
                           onClick={() => {
-                            disconnectGmail();
-                            // Force reload user data
-                            setTimeout(() => {
+                            // Direct implementation for better reliability
+                            setIsDisconnecting(true);
+                            
+                            fetch("/api/gmail/disconnect", {
+                              method: "POST",
+                              credentials: "include",
+                              headers: {
+                                "Content-Type": "application/json"
+                              }
+                            })
+                            .then(res => {
+                              if (!res.ok) {
+                                throw new Error("Failed to disconnect Gmail");
+                              }
+                              return res.json();
+                            })
+                            .then(() => {
+                              // Force reload to ensure UI updates completely
                               window.location.reload();
-                            }, 1000);
+                            })
+                            .catch(err => {
+                              console.error("Error disconnecting Gmail:", err);
+                              toast({
+                                title: "Error disconnecting Gmail",
+                                description: "Please try again later",
+                                variant: "destructive"
+                              });
+                            })
+                            .finally(() => {
+                              setIsDisconnecting(false);
+                            });
                           }}
                           disabled={isDisconnecting}
                         >
