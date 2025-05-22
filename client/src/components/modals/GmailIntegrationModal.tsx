@@ -32,9 +32,19 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
   const handleGetAuthUrl = () => {
     if (authUrlData?.authUrl) {
       try {
-        // Open Gmail auth in a new tab
-        window.open(authUrlData.authUrl, "_blank");
+        // Show code input first, then open Gmail auth (helps with popup blockers)
         setShowCodeInput(true);
+        
+        // Display instructions to the user
+        toast({
+          title: "Gmail Authorization",
+          description: "A new tab will open for Gmail authorization. After allowing access, copy the code from the page and paste it here.",
+        });
+        
+        // Open Gmail auth in a new tab
+        setTimeout(() => {
+          window.open(authUrlData.authUrl, "_blank");
+        }, 500);
       } catch (error) {
         toast({
           title: "Error opening authorization page",
@@ -112,6 +122,10 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
                 <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-3">
                   After authorizing in Google, you'll receive a code. Copy and paste it here:
                 </p>
+                <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md mb-3 text-xs">
+                  <strong>Note:</strong> If you see "This site can't be reached" after allowing access, don't worry. 
+                  Look in your browser's address bar - you'll find the authorization code there after "code=" and before any "&" character.
+                </div>
                 <input
                   type="text"
                   className="w-full p-2 border rounded"

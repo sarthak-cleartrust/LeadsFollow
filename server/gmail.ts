@@ -5,7 +5,7 @@ import { User, InsertEmail } from "@shared/schema";
 // Check for required environment variables
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "http://localhost:5000/api/gmail/callback";
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "https://cleartrust.repl.co/api/gmail/callback";
 
 // Set up OAuth2 client
 const oauth2Client = new google.auth.OAuth2(
@@ -45,8 +45,13 @@ export function getAuthUrl() {
 
 // Get token from authorization code
 export async function getTokenFromCode(code: string) {
-  const { tokens } = await oauth2Client.getToken(code);
-  return tokens;
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    return tokens;
+  } catch (error) {
+    console.error("Error getting tokens from code:", error);
+    throw new Error("Invalid authorization code. Please make sure you're using the correct code from Google.");
+  }
 }
 
 // Extract email content from Gmail API message format
