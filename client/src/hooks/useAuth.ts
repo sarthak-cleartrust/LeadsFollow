@@ -73,13 +73,14 @@ export function useAuth() {
       return res.json();
     },
     onSuccess: (data) => {
-      setIsAuthenticated(true);
-      queryClient.setQueryData(["/api/auth/user"], data);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // After registration, don't set authenticated
+      // This will allow the user to log in with their new credentials
       toast({
         title: "Registration successful",
-        description: `Welcome, ${data.fullName}!`,
+        description: "Your account has been created. Please login with your credentials.",
       });
+      // Clear the query cache for the user
+      queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
     },
     onError: (error: Error) => {
       toast({

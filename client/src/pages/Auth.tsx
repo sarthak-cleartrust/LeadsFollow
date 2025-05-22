@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation } from "wouter";
 
 // Login form schema
 const loginSchema = z.object({
@@ -36,7 +37,15 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState("login");
-  const { login, register, isLoginPending, isRegisterPending } = useAuth();
+  const { login, register, isLoginPending, isRegisterPending, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Redirect to dashboard if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/dashboard");
+    }
+  }, [isAuthenticated, setLocation]);
   
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -64,7 +73,9 @@ export default function Auth() {
   };
   
   const onRegister = (data: RegisterFormValues) => {
+    // Register the user and then switch to login tab
     register(data);
+    setActiveTab("login");
   };
   
   return (
