@@ -3,9 +3,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Define the response type for auth URL
+interface AuthUrlResponse {
+  authUrl: string;
+}
+
 // Get Gmail auth URL
 export function useGmailAuthUrl() {
-  return useQuery({
+  return useQuery<AuthUrlResponse>({
     queryKey: ["/api/gmail/auth-url"],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

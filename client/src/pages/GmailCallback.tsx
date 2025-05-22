@@ -46,6 +46,9 @@ export default function GmailCallback() {
       return response.json();
     })
     .then(() => {
+      // Invalidate user query to refresh authentication state
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
       toast({
         title: "Gmail Connected Successfully",
         description: "Your Gmail account has been connected to LeadFollow.",
