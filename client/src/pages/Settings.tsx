@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useGmailAuthUrl, useSyncGmail } from "@/lib/gmail";
+import { useGmailAuthUrl, useSyncGmail, useDisconnectGmail } from "@/lib/gmail";
 import {
   Cog,
   MailCheck,
@@ -30,6 +30,7 @@ export default function Settings() {
   const [showFollowUpRulesModal, setShowFollowUpRulesModal] = useState(false);
   
   const { mutate: syncGmail, isPending: isSyncing } = useSyncGmail();
+  const { mutate: disconnectGmail, isPending: isDisconnecting } = useDisconnectGmail();
   
   // Query for follow-up settings
   const { data: settings, isLoading: isLoadingSettings } = useQuery({
@@ -180,8 +181,10 @@ export default function Settings() {
                         <Button 
                           variant="destructive" 
                           size="sm"
+                          onClick={() => disconnectGmail()}
+                          disabled={isDisconnecting}
                         >
-                          Disconnect
+                          {isDisconnecting ? "Disconnecting..." : "Disconnect"}
                         </Button>
                       </div>
                     ) : (

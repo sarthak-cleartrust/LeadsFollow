@@ -68,6 +68,32 @@ export function useSyncGmail() {
   });
 }
 
+// Disconnect Gmail integration
+export function useDisconnectGmail() {
+  const { toast } = useToast();
+  
+  return useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/gmail/disconnect", {});
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Gmail disconnected",
+        description: "Your Gmail account has been disconnected successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to disconnect Gmail",
+        description: error.message || "Could not disconnect your Gmail account",
+        variant: "destructive",
+      });
+    }
+  });
+}
+
 // Helper to extract email from a formatted string like "John Doe <john@example.com>"
 export function extractEmail(emailString: string): string {
   const match = emailString.match(/<([^>]+)>/);

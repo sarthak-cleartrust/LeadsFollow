@@ -214,6 +214,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: err.message });
     }
   });
+  
+  // Disconnect Gmail integration
+  app.post("/api/gmail/disconnect", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      if (!req.user.gmailConnected) {
+        return res.status(400).json({ message: "Gmail is not connected" });
+      }
+      
+      // Update user to remove Gmail connection
+      const updatedUser = await storage.updateUser(req.user.id, {
+        gmailConnected: false,
+        refreshToken: null
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ 
+        success: true,
+        message: "Gmail disconnected successfully"
+      });
+    } catch (error) {
+      res.status(500).json({ message: (error as Error).message || "Failed to disconnect Gmail" });
+    }
+  });
 
   // Prospect routes
   app.get("/api/prospects", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
