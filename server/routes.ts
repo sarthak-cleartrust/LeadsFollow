@@ -165,7 +165,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Gmail integration routes
   app.get("/api/gmail/auth-url", isAuthenticated, (req: AuthenticatedRequest, res: Response) => {
     const authUrl = getAuthUrl();
+    // Store the auth URL in session for verification later
+    req.session.gmailAuthRequested = true;
     res.json({ authUrl });
+  });
+  
+  // Handle direct Google OAuth callback - this catches the redirect from Google
+  app.get("/api/gmail/callback", async (req: Request, res: Response) => {
+    try {
+      const code = req.query.code as string;
+      
+      if (!code) {
+        return res.redirect('/settings?error=no_code');
+      }
+      
+      // Get the user ID from the session
+      if (!req.session || !req.session.passport || !req.session.passport.user) {
+        return res.redirect('/auth?error=auth_required');
+      }
+      
+      const userId = req.session.passport.user;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.redirect('/auth?error=user_not_found');
+      }
+      
+      // Process the OAuth code
+      const tokens = await getTokenFromCode(code);
+      
+      if (!tokens.refresh_token) {
+        return res.redirect('/settings?error=no_refresh_token');
+      }
+      
+      // Save refresh token and update Gmail connected status
+      await storage.updateUser(user.id, {
+        refreshToken: tokens.refresh_token,
+        gmailConnected: true
+      });
+      
+      // Redirect to settings with success message
+      return res.redirect('/settings?gmail=connected');
+    } catch (error) {
+      console.error("Gmail callback error:", error);
+      return res.redirect('/settings?error=authorization_failed');
+    }
   });
 
   app.post("/api/gmail/callback", async (req: Request, res: Response) => {
