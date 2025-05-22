@@ -17,13 +17,13 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [showGmailModal, setShowGmailModal] = useState(false);
   
-  // Query for prospects
-  const { data: prospects } = useQuery({
+  // Query for prospects with proper type handling
+  const { data: prospects = [] } = useQuery({
     queryKey: ["/api/prospects"]
   });
   
-  // Query for follow-ups
-  const { data: followUps } = useQuery({
+  // Query for follow-ups with proper type handling
+  const { data: followUps = [] } = useQuery({
     queryKey: ["/api/follow-ups"]
   });
   

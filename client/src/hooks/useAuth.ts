@@ -55,6 +55,9 @@ export function useAuth() {
         title: "Login successful",
         description: `Welcome back, ${data.fullName}!`,
       });
+      
+      // Direct redirect to dashboard after successful login
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       setIsAuthenticated(false);

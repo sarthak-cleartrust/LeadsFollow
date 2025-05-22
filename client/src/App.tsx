@@ -30,7 +30,12 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function Router() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Show a loading indicator while checking authentication
+  if (isLoading) {
+    return <div className="h-screen flex items-center justify-center bg-background">Loading...</div>;
+  }
   
   if (isAuthenticated) {
     return (
@@ -40,10 +45,10 @@ function Router() {
           <Sidebar />
           <main className="flex-1 overflow-hidden">
             <Switch>
-              <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
-              <Route path="/prospects" component={() => <ProtectedRoute component={Prospects} />} />
-              <Route path="/follow-ups" component={() => <ProtectedRoute component={FollowUps} />} />
-              <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
+              <Route path="/" component={Dashboard} />
+              <Route path="/prospects" component={Prospects} />
+              <Route path="/follow-ups" component={FollowUps} />
+              <Route path="/settings" component={Settings} />
               <Route component={NotFound} />
             </Switch>
           </main>
@@ -56,8 +61,11 @@ function Router() {
     <Switch>
       <Route path="/auth" component={Auth} />
       <Route path="*" component={() => {
-        window.location.href = "/auth";
-        return null;
+        // Use React Router navigation instead of window.location
+        setTimeout(() => {
+          window.location.href = "/auth";
+        }, 100);
+        return <div className="h-screen flex items-center justify-center bg-background">Redirecting to login...</div>;
       }} />
     </Switch>
   );

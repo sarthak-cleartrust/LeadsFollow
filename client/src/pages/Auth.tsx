@@ -70,6 +70,12 @@ export default function Auth() {
   // Form submit handlers
   const onLogin = (data: LoginFormValues) => {
     login(data);
+    // Add manual redirect after successful login
+    setTimeout(() => {
+      if (isAuthenticated) {
+        window.location.href = "/";
+      }
+    }, 500);
   };
   
   const onRegister = (data: RegisterFormValues) => {
