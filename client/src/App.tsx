@@ -1,9 +1,5 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
+import { Switch, Route, useLocation } from "wouter";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/ThemeProvider";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Prospects from "@/pages/Prospects";
@@ -14,36 +10,58 @@ import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+function App() {
   const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div className="h-screen flex items-center justify-center bg-background">Loading...</div>;
-  }
-  
-  if (!isAuthenticated) {
-    window.location.href = "/auth";
-    return null;
-  }
-  
-  return <Component />;
-}
-
-function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const [location, setLocation] = useLocation();
   
   // Show a loading indicator while checking authentication
   if (isLoading) {
-    return <div className="h-screen flex items-center justify-center bg-background">Loading...</div>;
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p>Loading application...</p>
+        </div>
+      </div>
+    );
   }
   
-  if (isAuthenticated) {
+  // Redirect to auth if not authenticated and not already on auth page
+  if (!isAuthenticated && location !== "/auth") {
+    // Use a delayed redirect to ensure React has time to process state changes
+    setTimeout(() => setLocation("/auth"), 10);
     return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center">
+          <p>Please log in to continue...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show authentication page
+  if (!isAuthenticated) {
+    return (
+      <TooltipProvider>
+        <Switch>
+          <Route path="/auth" component={Auth} />
+          <Route component={() => {
+            setLocation("/auth");
+            return null;
+          }} />
+        </Switch>
+      </TooltipProvider>
+    );
+  }
+  
+  // Show main application with authenticated layout
+  return (
+    <TooltipProvider>
       <div className="h-screen flex flex-col">
         <Header />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/prospects" component={Prospects} />
@@ -54,33 +72,7 @@ function Router() {
           </main>
         </div>
       </div>
-    );
-  }
-  
-  return (
-    <Switch>
-      <Route path="/auth" component={Auth} />
-      <Route path="*" component={() => {
-        // Use React Router navigation instead of window.location
-        setTimeout(() => {
-          window.location.href = "/auth";
-        }, 100);
-        return <div className="h-screen flex items-center justify-center bg-background">Redirecting to login...</div>;
-      }} />
-    </Switch>
-  );
-}
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    </TooltipProvider>
   );
 }
 

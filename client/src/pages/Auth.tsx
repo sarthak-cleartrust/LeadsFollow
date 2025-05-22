@@ -43,9 +43,9 @@ export default function Auth() {
   // Redirect to dashboard if user is already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      setLocation("/dashboard");
+      window.location.href = "/";
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated]);
   
   // Login form
   const loginForm = useForm<LoginFormValues>({

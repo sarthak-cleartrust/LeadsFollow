@@ -33,11 +33,15 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    onSuccess: (data) => {
+      if (data) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    },
     onError: () => {
       setIsAuthenticated(false);
-    },
-    onSuccess: () => {
-      setIsAuthenticated(true);
     }
   });
 
@@ -50,14 +54,14 @@ export function useAuth() {
     onSuccess: (data) => {
       setIsAuthenticated(true);
       queryClient.setQueryData(["/api/auth/user"], data);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
       toast({
         title: "Login successful",
         description: `Welcome back, ${data.fullName}!`,
       });
       
-      // Direct redirect to dashboard after successful login
-      window.location.href = "/";
+      // Force a hard redirect to the dashboard
+      window.location.replace("/");
     },
     onError: (error: Error) => {
       setIsAuthenticated(false);
