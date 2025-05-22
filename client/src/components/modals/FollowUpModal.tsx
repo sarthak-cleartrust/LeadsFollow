@@ -1,14 +1,4 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,14 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -32,8 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -41,19 +25,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-// Form schema
-const followUpSchema = z.object({
-  dueDate: z.date({
-    required_error: "Please select a date",
-  }),
-  type: z.string({
-    required_error: "Please select a follow-up type",
-  }),
-  notes: z.string().optional(),
-});
-
-type FollowUpFormValues = z.infer<typeof followUpSchema>;
+import { format } from "date-fns";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface FollowUpModalProps {
   isOpen: boolean;
@@ -62,182 +37,138 @@ interface FollowUpModalProps {
 }
 
 export default function FollowUpModal({ isOpen, onClose, prospect }: FollowUpModalProps) {
-  const { toast } = useToast();
+  const [followUpType, setFollowUpType] = useState("email");
+  const [date, setDate] = useState<Date>(new Date(new Date().setDate(new Date().getDate() + 7)));
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Set default due date to tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const queryClient = useQueryClient();
   
-  // Setup form
-  const form = useForm<FollowUpFormValues>({
-    resolver: zodResolver(followUpSchema),
-    defaultValues: {
-      dueDate: tomorrow,
-      type: "email",
-      notes: "",
-    },
-  });
-  
-  // Create follow-up mutation
-  const createFollowUp = useMutation({
-    mutationFn: async (data: FollowUpFormValues) => {
-      const res = await apiRequest("POST", "/api/follow-ups", {
-        ...data,
-        prospectId: prospect.id,
-        completed: false,
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      await apiRequest("/api/follow-ups", {
+        method: "POST",
+        body: JSON.stringify({
+          type: followUpType,
+          prospectId: prospect.id,
+          dueDate: date,
+          notes: notes || null,
+          completed: false,
+          completedDate: null
+        })
       });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/prospects/${prospect.id}/follow-ups`] });
+      
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      toast({
-        title: "Follow-up scheduled",
-        description: "The follow-up has been scheduled successfully.",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+      
+      // Close modal and reset form
       onClose();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to schedule follow-up",
-        description: error.message,
-        variant: "destructive",
-      });
+      setFollowUpType("email");
+      setDate(new Date(new Date().setDate(new Date().getDate() + 7)));
+      setNotes("");
+    } catch (error) {
+      console.error("Error creating follow-up:", error);
+    } finally {
+      setIsSubmitting(false);
     }
-  });
-  
-  // Form submit handler
-  const onSubmit = (data: FollowUpFormValues) => {
-    createFollowUp.mutate(data);
   };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Schedule Follow-up</DialogTitle>
+          <DialogTitle className="text-xl">Schedule Follow-up</DialogTitle>
           <DialogDescription>
-            Set a reminder to follow up with this prospect.
+            Create a follow-up reminder for {prospect?.name}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="mb-4">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-primary font-medium mr-3">
-              {prospect?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)}
-            </div>
-            <div>
-              <div className="font-medium">{prospect?.name}</div>
-              <div className="text-sm text-neutral-500">
-                Last contacted: {prospect?.lastContactDate 
-                  ? new Date(prospect.lastContactDate).toLocaleDateString() 
-                  : "Never"}
-              </div>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="followUpType" className="text-right">
+              Type
+            </Label>
+            <Select
+              value={followUpType}
+              onValueChange={(value) => setFollowUpType(value)}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select follow-up type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="call">Phone Call</SelectItem>
+                <SelectItem value="meeting">Meeting</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="date" className="text-right">
+              Due Date
+            </Label>
+            <div className="col-span-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(date) => date && setDate(date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Follow-up Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Follow-up Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select follow-up type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="call">Phone Call</SelectItem>
-                        <SelectItem value="meeting">Meeting</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="What do you need to follow up on?"
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={createFollowUp.isPending}
-                  className="bg-secondary hover:bg-secondary/90 text-white"
-                >
-                  {createFollowUp.isPending ? "Scheduling..." : "Schedule Follow-up"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="notes" className="text-right pt-2">
+              Notes
+            </Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any notes about this follow-up"
+              className="col-span-3"
+              rows={4}
+            />
+          </div>
         </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Schedule Follow-up"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
-import { useGmailAuthUrl, useAuthorizeGmail } from "@/lib/gmail";
-import { useAuth } from "@/hooks/useAuth";
-import { Check, X } from "lucide-react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useGmailAuthUrl, useAuthorizeGmail } from "@/lib/gmail";
+import { Loader2 } from "lucide-react";
 
 interface GmailIntegrationModalProps {
   isOpen: boolean;
@@ -18,119 +17,130 @@ interface GmailIntegrationModalProps {
 }
 
 export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrationModalProps) {
-  const { user } = useAuth();
+  const [authUrl, setAuthUrl] = useState<string | null>(null);
   const [authCode, setAuthCode] = useState("");
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showCodeInput, setShowCodeInput] = useState(false);
   
-  // Get Gmail auth URL
-  const { data: authUrlData, isLoading: isLoadingUrl } = useGmailAuthUrl();
+  // Fetch Gmail auth URL
+  const { data: authUrlData, isLoading: isAuthUrlLoading } = useGmailAuthUrl();
+  
+  // Authorize Gmail
   const { mutate: authorizeGmail, isPending: isAuthorizing } = useAuthorizeGmail();
   
-  // Handle Gmail OAuth process
-  const handleConnect = () => {
-    if (!authUrlData?.authUrl) return;
-    
-    // Open the auth URL in a new window
-    setIsAuthenticating(true);
-    const authWindow = window.open(authUrlData.authUrl, "gmail-auth", "width=600,height=600");
-    
-    // Function to handle message from the OAuth popup
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === "gmail-oauth-callback" && event.data.code) {
-        setAuthCode(event.data.code);
-        authorizeGmail(event.data.code);
-        setIsAuthenticating(false);
-        
-        if (authWindow) {
-          authWindow.close();
-        }
-        
-        window.removeEventListener("message", handleMessage);
-      }
-    };
-    
-    window.addEventListener("message", handleMessage);
+  // Handle getting authorization URL
+  const handleGetAuthUrl = () => {
+    if (authUrlData) {
+      // Open Gmail auth in a new tab
+      window.open(authUrlData, "_blank");
+      setShowCodeInput(true);
+    }
   };
   
-  // If user is already connected, close the modal
-  useEffect(() => {
-    if (user?.gmailConnected) {
-      onClose();
+  // Handle authorization code submission
+  const handleAuthorize = () => {
+    if (authCode.trim()) {
+      authorizeGmail(
+        { code: authCode.trim() },
+        {
+          onSuccess: () => {
+            onClose();
+            window.location.reload(); // Refresh to update UI
+          }
+        }
+      );
     }
-  }, [user?.gmailConnected, onClose]);
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Connect Gmail Account</DialogTitle>
+          <DialogTitle className="text-xl">Connect Gmail Account</DialogTitle>
           <DialogDescription>
-            Connect your Gmail account to enable automatic tracking of prospect communications and follow-up reminders.
+            Connect your Gmail account to automatically track communications with prospects and schedule follow-ups.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="mb-6">
-          <div className="border border-neutral-300 dark:border-border rounded-md p-4 bg-neutral-100 dark:bg-muted">
-            <div className="flex items-center">
-              <img 
-                src="https://www.google.com/gmail/about/static/images/logo-gmail.png?cache=1adba63" 
-                alt="Gmail logo" 
-                className="w-8 h-8 mr-3"
-              />
-              <div>
-                <div className="font-medium">Gmail Integration</div>
-                <div className="text-sm text-neutral-500">
-                  Access to read and send emails on your behalf
-                </div>
+        <div className="py-4 space-y-4">
+          {!showCodeInput ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-md">
+                <h3 className="font-medium mb-2">Benefits of connecting Gmail:</h3>
+                <ul className="list-disc pl-5 space-y-1 text-neutral-600 dark:text-neutral-400">
+                  <li>Automatically track emails with prospects</li>
+                  <li>Get reminders when follow-ups are due</li>
+                  <li>See all prospect communications in one place</li>
+                  <li>Never miss an important lead again</li>
+                </ul>
+              </div>
+              
+              <div className="p-4 bg-neutral-100 dark:bg-neutral-800/50 rounded-md">
+                <h3 className="font-medium mb-2">Your data is secure:</h3>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+                  LeadFollow only accesses emails related to your prospects and uses them only for displaying within the app.
+                  We never store full email content in our database.
+                </p>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-md">
+                <h3 className="font-medium mb-2">Enter authorization code:</h3>
+                <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-3">
+                  After authorizing in Google, you'll receive a code. Copy and paste it here:
+                </p>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded"
+                  value={authCode}
+                  onChange={(e) => setAuthCode(e.target.value)}
+                  placeholder="Paste authorization code here"
+                />
+              </div>
+            </div>
+          )}
         </div>
         
-        <div className="border-t border-neutral-300 dark:border-border pt-4 mb-4">
-          <div className="font-medium mb-2">Permissions required:</div>
-          <ul className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2">
-            <li className="flex items-center">
-              <Check className="h-4 w-4 text-secondary mr-2" />
-              Read emails from your inbox
-            </li>
-            <li className="flex items-center">
-              <Check className="h-4 w-4 text-secondary mr-2" />
-              Send emails on your behalf
-            </li>
-            <li className="flex items-center">
-              <Check className="h-4 w-4 text-secondary mr-2" />
-              View email metadata (subject, dates, recipients)
-            </li>
-            <li className="flex items-center">
-              <Check className="h-4 w-4 text-secondary mr-2" />
-              Manage labels for follow-up tracking
-            </li>
-          </ul>
-        </div>
-        
-        <DialogFooter className="flex justify-end space-x-3">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-          >
-            Cancel
-          </Button>
-          <Button 
-            disabled={isLoadingUrl || isAuthenticating || isAuthorizing}
-            onClick={handleConnect}
-            className="flex items-center"
-          >
-            <img 
-              src="https://www.google.com/gmail/about/static/images/logo-gmail.png?cache=1adba63" 
-              alt="Gmail logo" 
-              className="w-5 h-5 mr-2" 
-            />
-            {isLoadingUrl ? "Loading..." : 
-             isAuthenticating ? "Authenticating..." : 
-             isAuthorizing ? "Connecting..." : 
-             "Connect Gmail"}
-          </Button>
+        <DialogFooter className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-between">
+          {!showCodeInput ? (
+            <>
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleGetAuthUrl} 
+                disabled={isAuthUrlLoading || !authUrlData}
+              >
+                {isAuthUrlLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Connect Gmail"
+                )}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => setShowCodeInput(false)}>
+                Back
+              </Button>
+              <Button 
+                onClick={handleAuthorize} 
+                disabled={!authCode.trim() || isAuthorizing}
+              >
+                {isAuthorizing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  "Authorize"
+                )}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
