@@ -131,11 +131,25 @@ export default function Header() {
               <DropdownMenuItem 
                 className="cursor-pointer text-destructive focus:text-destructive" 
                 onClick={() => {
-                  logout.mutate();
+                  // Direct logout implementation
+                  fetch("/api/auth/logout", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                      "Content-Type": "application/json"
+                    }
+                  })
+                  .then(() => {
+                    // Force redirect to login page
+                    window.location.href = "/";
+                  })
+                  .catch(err => {
+                    console.error("Logout error:", err);
+                  });
                 }}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>{logout.isPending ? "Logging out..." : "Log out"}</span>
+                <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
