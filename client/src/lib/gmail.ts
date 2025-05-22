@@ -74,8 +74,17 @@ export function useDisconnectGmail() {
   
   return useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/gmail/disconnect", {});
-      return res.json();
+      try {
+        const res = await apiRequest("POST", "/api/gmail/disconnect", {});
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to disconnect Gmail");
+        }
+        return res.json();
+      } catch (error) {
+        console.error("Error in disconnect Gmail mutation:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -85,9 +94,10 @@ export function useDisconnectGmail() {
       });
     },
     onError: (error: Error) => {
+      console.error("Gmail disconnect error:", error);
       toast({
         title: "Failed to disconnect Gmail",
-        description: error.message || "Could not disconnect your Gmail account",
+        description: "Could not disconnect your Gmail account. Please try again.",
         variant: "destructive",
       });
     }

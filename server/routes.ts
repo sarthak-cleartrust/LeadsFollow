@@ -222,11 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      if (!req.user.gmailConnected) {
-        return res.status(400).json({ message: "Gmail is not connected" });
-      }
-      
-      // Update user to remove Gmail connection
+      // Update user to remove Gmail connection regardless of current connection status
       const updatedUser = await storage.updateUser(req.user.id, {
         gmailConnected: false,
         refreshToken: null
@@ -241,7 +237,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Gmail disconnected successfully"
       });
     } catch (error) {
-      res.status(500).json({ message: (error as Error).message || "Failed to disconnect Gmail" });
+      console.error("Error disconnecting Gmail:", error);
+      res.status(500).json({ message: "Failed to disconnect Gmail" });
     }
   });
 
