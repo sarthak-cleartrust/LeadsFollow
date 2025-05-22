@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useGmailAuthUrl, useAuthorizeGmail } from "@/lib/gmail";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface GmailIntegrationModalProps {
   isOpen: boolean;
@@ -17,12 +18,12 @@ interface GmailIntegrationModalProps {
 }
 
 export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrationModalProps) {
-  const [authUrl, setAuthUrl] = useState<string | null>(null);
   const [authCode, setAuthCode] = useState("");
   const [showCodeInput, setShowCodeInput] = useState(false);
+  const { toast } = useToast();
   
   // Fetch Gmail auth URL
-  const { data: authUrlData, isLoading: isAuthUrlLoading } = useGmailAuthUrl();
+  const { data: authUrlData, isLoading: isAuthUrlLoading, error: authUrlError } = useGmailAuthUrl();
   
   // Authorize Gmail
   const { mutate: authorizeGmail, isPending: isAuthorizing } = useAuthorizeGmail();
@@ -30,9 +31,23 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
   // Handle getting authorization URL
   const handleGetAuthUrl = () => {
     if (authUrlData?.authUrl) {
-      // Open Gmail auth in a new tab
-      window.open(authUrlData.authUrl, "_blank");
-      setShowCodeInput(true);
+      try {
+        // Open Gmail auth in a new tab
+        window.open(authUrlData.authUrl, "_blank");
+        setShowCodeInput(true);
+      } catch (error) {
+        toast({
+          title: "Error opening authorization page",
+          description: "Please enable popups for this site and try again",
+          variant: "destructive",
+        });
+      }
+    } else if (authUrlError) {
+      toast({
+        title: "Error getting authorization URL",
+        description: "There was an error connecting to Gmail. Please try again later.",
+        variant: "destructive",
+      });
     }
   };
   
@@ -41,8 +56,19 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
     if (authCode.trim()) {
       authorizeGmail(authCode.trim(), {
         onSuccess: () => {
+          toast({
+            title: "Gmail connected successfully",
+            description: "Your Gmail account is now connected to LeadFollow",
+          });
           onClose();
           window.location.reload(); // Refresh to update UI
+        },
+        onError: (error) => {
+          toast({
+            title: "Error connecting Gmail",
+            description: error.message || "There was an error connecting your Gmail account",
+            variant: "destructive",
+          });
         }
       });
     }
