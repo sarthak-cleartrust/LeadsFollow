@@ -28,6 +28,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState("general");
   const [showGmailModal, setShowGmailModal] = useState(false);
   const [showFollowUpRulesModal, setShowFollowUpRulesModal] = useState(false);
+  const [isManualDisconnecting, setIsManualDisconnecting] = useState(false);
   
   const { mutate: syncGmail, isPending: isSyncing } = useSyncGmail();
   const { mutate: disconnectGmail, isPending: isDisconnecting } = useDisconnectGmail();
@@ -183,7 +184,7 @@ export default function Settings() {
                           size="sm"
                           onClick={() => {
                             // Direct implementation for better reliability
-                            setIsDisconnecting(true);
+                            setIsManualDisconnecting(true);
                             
                             fetch("/api/gmail/disconnect", {
                               method: "POST",
@@ -211,12 +212,12 @@ export default function Settings() {
                               });
                             })
                             .finally(() => {
-                              setIsDisconnecting(false);
+                              setIsManualDisconnecting(false);
                             });
                           }}
-                          disabled={isDisconnecting}
+                          disabled={isManualDisconnecting || isDisconnecting}
                         >
-                          {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+                          {isManualDisconnecting || isDisconnecting ? "Disconnecting..." : "Disconnect"}
                         </Button>
                       </div>
                     ) : (
