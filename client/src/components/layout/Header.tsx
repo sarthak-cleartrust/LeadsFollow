@@ -128,9 +128,14 @@ export default function Header() {
                 <span>My Profile</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
+              <DropdownMenuItem 
+                className="cursor-pointer text-destructive focus:text-destructive" 
+                onClick={() => {
+                  logout.mutate();
+                }}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>{isLogoutPending ? "Logging out..." : "Log out"}</span>
+                <span>{logout.isPending ? "Logging out..." : "Log out"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

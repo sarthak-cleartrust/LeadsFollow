@@ -115,8 +115,26 @@ export function useAuth() {
   // Logout mutation
   const logout = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/logout", {});
-      return res.json();
+      try {
+        const res = await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to logout");
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Logout error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       setIsAuthenticated(false);
@@ -124,11 +142,16 @@ export function useAuth() {
       toast({
         title: "Logged out successfully",
       });
+      
+      // Redirect to login page after logout
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
         title: "Logout failed",
-        description: error.message,
+        description: error.message || "Could not log out",
         variant: "destructive",
       });
     }
