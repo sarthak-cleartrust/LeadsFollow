@@ -28,7 +28,8 @@ function App() {
   
   // Special case: Allow Gmail callback page to work without authentication
   const path = window.location.pathname;
-  if (path === "/auth/gmail-callback") {
+  // Check for both potential callback paths
+  if (path === "/auth/gmail-callback" || path === "/gmail/callback" || path.includes("gmail/callback") || path.includes("gmailcallback")) {
     return (
       <div className="min-h-screen">
         <GmailCallback />

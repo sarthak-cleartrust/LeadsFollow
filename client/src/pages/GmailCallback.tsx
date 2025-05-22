@@ -15,6 +15,22 @@ export default function GmailCallback() {
     // Extract the code from URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
+    const error = urlParams.get("error");
+    
+    if (error) {
+      console.error("Google OAuth error:", error);
+      toast({
+        title: "Authorization Declined",
+        description: "You declined to authorize LeadFollow with Gmail.",
+        variant: "destructive",
+      });
+      setStatus("error");
+      // Redirect back to settings after a short delay
+      setTimeout(() => {
+        setLocation("/settings");
+      }, 3000);
+      return;
+    }
     
     if (!code) {
       toast({
@@ -23,14 +39,17 @@ export default function GmailCallback() {
         variant: "destructive",
       });
       setStatus("error");
-      // Redirect back to dashboard after a short delay
+      // Redirect back to settings after a short delay
       setTimeout(() => {
-        setLocation("/dashboard");
+        setLocation("/settings");
       }, 3000);
       return;
     }
 
-    // Submit the code to the server
+    // Show processing state
+    setStatus("processing");
+    
+    // Submit the code to the server with better error handling
     fetch('/api/gmail/callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -54,9 +73,9 @@ export default function GmailCallback() {
         description: "Your Gmail account has been connected to LeadFollow.",
       });
       setStatus("success");
-      // Redirect back to dashboard after a short delay
+      // Redirect back to settings after a short delay
       setTimeout(() => {
-        setLocation("/dashboard");
+        setLocation("/settings");
       }, 2000);
     })
     .catch(error => {
@@ -67,9 +86,9 @@ export default function GmailCallback() {
         variant: "destructive",
       });
       setStatus("error");
-      // Redirect back to dashboard after a short delay
+      // Redirect back to settings after a short delay
       setTimeout(() => {
-        setLocation("/dashboard");
+        setLocation("/settings");
       }, 3000);
     });
   }, []);
