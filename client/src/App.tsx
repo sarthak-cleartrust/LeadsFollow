@@ -6,6 +6,7 @@ import Prospects from "@/pages/Prospects";
 import FollowUps from "@/pages/FollowUps";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
+import GmailCallback from "@/pages/GmailCallback";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
@@ -21,6 +22,16 @@ function App() {
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
           <p>Loading LeadFollow...</p>
         </div>
+      </div>
+    );
+  }
+  
+  // Special case: Allow Gmail callback page to work without authentication
+  const path = window.location.pathname;
+  if (path === "/auth/gmail-callback") {
+    return (
+      <div className="min-h-screen">
+        <GmailCallback />
       </div>
     );
   }
@@ -48,6 +59,7 @@ function App() {
               <Route path="/prospects" component={Prospects} />
               <Route path="/follow-ups" component={FollowUps} />
               <Route path="/settings" component={Settings} />
+              <Route path="/auth/gmail-callback" component={GmailCallback} />
               <Route component={NotFound} />
             </Switch>
           </main>

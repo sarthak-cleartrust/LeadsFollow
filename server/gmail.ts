@@ -5,7 +5,9 @@ import { User, InsertEmail } from "@shared/schema";
 // Check for required environment variables
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "https://cleartrust.repl.co/api/gmail/callback";
+// Use the current Replit domain for the redirect URI
+const REPLIT_URL = process.env.REPLIT_URL || "https://leadsfollow.replit.app";
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${REPLIT_URL}/auth/gmail-callback`;
 
 // Set up OAuth2 client
 const oauth2Client = new google.auth.OAuth2(

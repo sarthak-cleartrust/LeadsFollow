@@ -32,23 +32,18 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
   const handleGetAuthUrl = () => {
     if (authUrlData?.authUrl) {
       try {
-        // Show code input first, then open Gmail auth (helps with popup blockers)
-        setShowCodeInput(true);
-        
         // Display instructions to the user
         toast({
-          title: "Gmail Authorization",
-          description: "A new tab will open for Gmail authorization. After allowing access, copy the code from the page and paste it here.",
+          title: "Gmail Authorization Redirect",
+          description: "You'll be redirected to Google to authorize access. After approving, you'll be automatically returned to the app.",
         });
         
-        // Open Gmail auth in a new tab
-        setTimeout(() => {
-          window.open(authUrlData.authUrl, "_blank");
-        }, 500);
+        // Instead of opening in a new tab, redirect the user directly
+        window.location.href = authUrlData.authUrl;
       } catch (error) {
         toast({
-          title: "Error opening authorization page",
-          description: "Please enable popups for this site and try again",
+          title: "Error during authorization",
+          description: "There was a problem connecting to Google. Please try again.",
           variant: "destructive",
         });
       }
