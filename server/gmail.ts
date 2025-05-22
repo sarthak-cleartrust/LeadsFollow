@@ -5,8 +5,13 @@ import { User, InsertEmail } from "@shared/schema";
 // Check for required environment variables
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-// Use the redirect URI directly from environment variable
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+// Use the correct redirect URI based on the available Replit URL
+const DEPLOYED_DOMAIN = process.env.REPLIT_SLUG 
+  ? `https://${process.env.REPLIT_SLUG}.${process.env.REPLIT_OWNER}.repl.co`
+  : 'https://892adcd0-a789-4389-9315-ab098b79f7b9-00-3p1v5ssm428rd.worf.replit.dev';
+  
+// Use the standardized callback URL that works with your Google OAuth setup
+const GOOGLE_REDIRECT_URI = `${DEPLOYED_DOMAIN}/gmail/callback`;
 
 // Set up OAuth2 client
 const oauth2Client = new google.auth.OAuth2(

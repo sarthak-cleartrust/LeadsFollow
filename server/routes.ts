@@ -171,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Handle direct Google OAuth callback - this catches the redirect from Google
-  app.get("/api/gmail/callback", async (req: Request, res: Response) => {
+  app.get(["/api/gmail/callback", "/gmail/callback", "/auth/gmail-callback"], async (req: Request, res: Response) => {
     try {
       const code = req.query.code as string;
       
