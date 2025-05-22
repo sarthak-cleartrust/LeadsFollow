@@ -17,7 +17,7 @@ export function useAuthorizeGmail() {
   
   return useMutation({
     mutationFn: async (code: string) => {
-      const res = await apiRequest("POST", "/api/gmail/callback", { code });
+      const res = await apiRequest("POST", "/api/gmail/callback", { code: code });
       return res.json();
     },
     onSuccess: () => {

@@ -29,9 +29,9 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
   
   // Handle getting authorization URL
   const handleGetAuthUrl = () => {
-    if (authUrlData) {
+    if (authUrlData?.authUrl) {
       // Open Gmail auth in a new tab
-      window.open(authUrlData, "_blank");
+      window.open(authUrlData.authUrl, "_blank");
       setShowCodeInput(true);
     }
   };
@@ -39,15 +39,12 @@ export default function GmailIntegrationModal({ isOpen, onClose }: GmailIntegrat
   // Handle authorization code submission
   const handleAuthorize = () => {
     if (authCode.trim()) {
-      authorizeGmail(
-        { code: authCode.trim() },
-        {
-          onSuccess: () => {
-            onClose();
-            window.location.reload(); // Refresh to update UI
-          }
+      authorizeGmail(authCode.trim(), {
+        onSuccess: () => {
+          onClose();
+          window.location.reload(); // Refresh to update UI
         }
-      );
+      });
     }
   };
   
