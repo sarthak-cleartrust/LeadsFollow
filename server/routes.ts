@@ -225,24 +225,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      // Use the storage interface to update the user
-      const updatedUser = await storage.updateUser(req.user.id, {
-        gmailConnected: false,
-        refreshToken: null
-      });
-      
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      // Direct SQL query to ensure proper disconnection
+      await db
+        .update(users)
+        .set({
+          gmailConnected: false,
+          refreshToken: null
+        })
+        .where(eq(users.id, req.user.id));
       
       // Also update the session user data to reflect the change
       if (req.user) {
         req.user.gmailConnected = false;
+        req.user.refreshToken = null;
       }
       
       res.json({ 
         success: true,
-        message: "Gmail disconnected successfully"
+        message: "Gmail disconnected successfully",
+        user: {
+          ...req.user,
+          gmailConnected: false,
+          refreshToken: null
+        }
       });
     } catch (error) {
       console.error("Error disconnecting Gmail:", error);
