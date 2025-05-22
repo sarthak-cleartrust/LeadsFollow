@@ -15,6 +15,8 @@ import {
   FollowUpSetting,
   InsertFollowUpSetting,
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 // Storage interface for all operations
 export interface IStorage {
@@ -265,4 +267,208 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  // Prospect methods
+  async getProspect(id: number): Promise<Prospect | undefined> {
+    const [prospect] = await db.select().from(prospects).where(eq(prospects.id, id));
+    return prospect;
+  }
+
+  async getProspectByEmail(email: string, userId: number): Promise<Prospect | undefined> {
+    const [prospect] = await db
+      .select()
+      .from(prospects)
+      .where(and(eq(prospects.email, email), eq(prospects.userId, userId)));
+    return prospect;
+  }
+
+  async getProspectsByUser(userId: number): Promise<Prospect[]> {
+    return db.select().from(prospects).where(eq(prospects.userId, userId));
+  }
+
+  async getProspectsRequiringFollowUp(userId: number): Promise<Prospect[]> {
+    const settings = await this.getFollowUpSettings(userId) || {
+      userId,
+      initialResponseDays: 2,
+      standardFollowUpDays: 4,
+      notifyEmail: true,
+      notifyBrowser: true,
+      notifyDailyDigest: true,
+      highPriorityDays: 3,
+      mediumPriorityDays: 1,
+      lowPriorityDays: 3,
+    };
+
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - settings.standardFollowUpDays);
+
+    return db
+      .select()
+      .from(prospects)
+      .where(
+        and(
+          eq(prospects.userId, userId),
+          sql`${prospects.lastContactDate} <= ${daysAgo.toISOString()}::timestamp`
+        )
+      );
+  }
+
+  async createProspect(insertProspect: InsertProspect): Promise<Prospect> {
+    const [prospect] = await db.insert(prospects).values(insertProspect).returning();
+    return prospect;
+  }
+
+  async updateProspect(id: number, data: Partial<Prospect>): Promise<Prospect | undefined> {
+    const [updatedProspect] = await db
+      .update(prospects)
+      .set(data)
+      .where(eq(prospects.id, id))
+      .returning();
+    return updatedProspect;
+  }
+
+  async deleteProspect(id: number): Promise<boolean> {
+    const result = await db.delete(prospects).where(eq(prospects.id, id));
+    return !!result.rowCount && result.rowCount > 0;
+  }
+
+  // Email methods
+  async getEmails(prospectId: number): Promise<Email[]> {
+    return db
+      .select()
+      .from(emails)
+      .where(eq(emails.prospectId, prospectId))
+      .orderBy(desc(emails.date));
+  }
+
+  async getEmailByGmailId(gmailId: string): Promise<Email | undefined> {
+    const [email] = await db.select().from(emails).where(eq(emails.gmailId, gmailId));
+    return email;
+  }
+
+  async createEmail(insertEmail: InsertEmail): Promise<Email> {
+    const [email] = await db.insert(emails).values(insertEmail).returning();
+    
+    // Update prospect's lastContactDate
+    await db
+      .update(prospects)
+      .set({ lastContactDate: insertEmail.date })
+      .where(eq(prospects.id, insertEmail.prospectId));
+    
+    return email;
+  }
+
+  // FollowUp methods
+  async getFollowUp(id: number): Promise<FollowUp | undefined> {
+    const [followUp] = await db.select().from(followUps).where(eq(followUps.id, id));
+    return followUp;
+  }
+
+  async getFollowUpsByProspect(prospectId: number): Promise<FollowUp[]> {
+    return db
+      .select()
+      .from(followUps)
+      .where(eq(followUps.prospectId, prospectId))
+      .orderBy(followUps.dueDate);
+  }
+
+  async getPendingFollowUps(userId: number): Promise<(FollowUp & { prospect: Prospect })[]> {
+    const userProspects = await this.getProspectsByUser(userId);
+    if (userProspects.length === 0) return [];
+
+    const prospectIds = userProspects.map(p => p.id);
+    const followUpsList = await db
+      .select()
+      .from(followUps)
+      .where(
+        and(
+          sql`${followUps.prospectId} = ANY(ARRAY[${prospectIds}])`,
+          eq(followUps.completed, false)
+        )
+      )
+      .orderBy(followUps.dueDate);
+
+    return followUpsList.map(followUp => {
+      const prospect = userProspects.find(p => p.id === followUp.prospectId)!;
+      return { ...followUp, prospect };
+    });
+  }
+
+  async createFollowUp(insertFollowUp: InsertFollowUp): Promise<FollowUp> {
+    const [followUp] = await db.insert(followUps).values(insertFollowUp).returning();
+    return followUp;
+  }
+
+  async updateFollowUp(id: number, data: Partial<FollowUp>): Promise<FollowUp | undefined> {
+    const [updatedFollowUp] = await db
+      .update(followUps)
+      .set(data)
+      .where(eq(followUps.id, id))
+      .returning();
+    return updatedFollowUp;
+  }
+
+  async deleteFollowUp(id: number): Promise<boolean> {
+    const result = await db.delete(followUps).where(eq(followUps.id, id));
+    return !!result.rowCount && result.rowCount > 0;
+  }
+
+  // FollowUpSettings methods
+  async getFollowUpSettings(userId: number): Promise<FollowUpSetting | undefined> {
+    const [settings] = await db
+      .select()
+      .from(followUpSettings)
+      .where(eq(followUpSettings.userId, userId));
+    return settings;
+  }
+
+  async createFollowUpSettings(settings: InsertFollowUpSetting): Promise<FollowUpSetting> {
+    const [newSettings] = await db
+      .insert(followUpSettings)
+      .values(settings)
+      .returning();
+    return newSettings;
+  }
+
+  async updateFollowUpSettings(userId: number, data: Partial<FollowUpSetting>): Promise<FollowUpSetting | undefined> {
+    const [updatedSettings] = await db
+      .update(followUpSettings)
+      .set(data)
+      .where(eq(followUpSettings.userId, userId))
+      .returning();
+    return updatedSettings;
+  }
+}
+
+// Export database storage instance instead of memory storage
+export const storage = new DatabaseStorage();
