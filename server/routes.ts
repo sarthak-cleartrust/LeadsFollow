@@ -11,8 +11,11 @@ import {
   insertUserSchema,
   insertProspectSchema,
   insertFollowUpSchema,
-  insertFollowUpSettingsSchema
+  insertFollowUpSettingsSchema,
+  users
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // Session storage using MemoryStore
@@ -222,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      // Update user to remove Gmail connection regardless of current connection status
+      // Use the storage interface to update the user
       const updatedUser = await storage.updateUser(req.user.id, {
         gmailConnected: false,
         refreshToken: null
@@ -230,6 +233,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Also update the session user data to reflect the change
+      if (req.user) {
+        req.user.gmailConnected = false;
       }
       
       res.json({ 

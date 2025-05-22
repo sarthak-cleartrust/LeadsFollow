@@ -181,7 +181,13 @@ export default function Settings() {
                         <Button 
                           variant="destructive" 
                           size="sm"
-                          onClick={() => disconnectGmail()}
+                          onClick={() => {
+                            disconnectGmail();
+                            // Force reload user data
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 1000);
+                          }}
                           disabled={isDisconnecting}
                         >
                           {isDisconnecting ? "Disconnecting..." : "Disconnect"}
