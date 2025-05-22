@@ -40,7 +40,8 @@ export function getAuthUrl() {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: scopes,
-    prompt: "consent" // Force to get refresh token
+    prompt: "consent", // Force to get refresh token
+    include_granted_scopes: true
   });
 }
 
