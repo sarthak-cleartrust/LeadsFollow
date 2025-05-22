@@ -165,24 +165,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ authUrl });
   });
 
-  app.post("/api/gmail/callback", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/gmail/callback", async (req: Request, res: Response) => {
     try {
       const code = z.string().parse(req.body.code);
+      
+      // Get the user ID from the session
+      if (!req.session || !req.session.passport || !req.session.passport.user) {
+        return res.status(401).json({ message: "You must be logged in to connect Gmail" });
+      }
+      
+      const userId = req.session.passport.user;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       const tokens = await getTokenFromCode(code);
 
       if (!tokens.refresh_token) {
-        return res.status(400).json({ message: "No refresh token returned" });
+        return res.status(400).json({ 
+          message: "No refresh token returned. You may need to revoke access in your Google account and try again." 
+        });
       }
 
       // Save refresh token and update Gmail connected status
-      await storage.updateUser(req.user!.id, {
+      await storage.updateUser(user.id, {
         refreshToken: tokens.refresh_token,
         gmailConnected: true
       });
 
       res.json({ success: true });
     } catch (err: any) {
-      res.status(400).json({ message: err.message });
+      console.error("Gmail callback error:", err);
+      res.status(400).json({ message: "Failed to process Gmail authorization", error: err.message });
     }
   });
 

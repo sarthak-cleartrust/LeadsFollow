@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthorizeGmail } from "@/lib/gmail";
+import { queryClient } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 
 export default function GmailCallback() {
@@ -9,8 +9,7 @@ export default function GmailCallback() {
   const { toast } = useToast();
   const [status, setStatus] = useState<"processing" | "success" | "error">("processing");
   
-  // Get the authorization code from the URL
-  const { mutate: authorizeGmail } = useAuthorizeGmail();
+  // User will be redirected here after Gmail authorization
   
   useEffect(() => {
     // Extract the code from URL query parameters
@@ -32,30 +31,43 @@ export default function GmailCallback() {
     }
 
     // Submit the code to the server
-    authorizeGmail(code, {
-      onSuccess: () => {
-        toast({
-          title: "Gmail Connected Successfully",
-          description: "Your Gmail account has been connected to LeadFollow.",
+    fetch('/api/gmail/callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+      credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.message || 'Failed to connect Gmail');
         });
-        setStatus("success");
-        // Redirect back to dashboard after a short delay
-        setTimeout(() => {
-          setLocation("/dashboard");
-        }, 2000);
-      },
-      onError: (error) => {
-        toast({
-          title: "Connection Failed",
-          description: error.message || "There was a problem connecting your Gmail account.",
-          variant: "destructive",
-        });
-        setStatus("error");
-        // Redirect back to dashboard after a short delay
-        setTimeout(() => {
-          setLocation("/dashboard");
-        }, 3000);
       }
+      return response.json();
+    })
+    .then(() => {
+      toast({
+        title: "Gmail Connected Successfully",
+        description: "Your Gmail account has been connected to LeadFollow.",
+      });
+      setStatus("success");
+      // Redirect back to dashboard after a short delay
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 2000);
+    })
+    .catch(error => {
+      console.error('Gmail callback error:', error);
+      toast({
+        title: "Connection Failed",
+        description: error.message || "There was a problem connecting your Gmail account.",
+        variant: "destructive",
+      });
+      setStatus("error");
+      // Redirect back to dashboard after a short delay
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 3000);
     });
   }, []);
 
