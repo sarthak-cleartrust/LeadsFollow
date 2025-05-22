@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -11,11 +12,18 @@ import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
+  const [isAppReady, setIsAppReady] = useState(false);
   
-  // Show a loading indicator while checking authentication
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading) {
+      setIsAppReady(true);
+    }
+  }, [isLoading]);
+
+  // Show a loading spinner while the application is initializing
+  if (!isAppReady) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center">
@@ -26,32 +34,9 @@ function App() {
     );
   }
   
-  // Redirect to auth if not authenticated and not already on auth page
-  if (!isAuthenticated && location !== "/auth") {
-    // Use a delayed redirect to ensure React has time to process state changes
-    setTimeout(() => setLocation("/auth"), 10);
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center">
-          <p>Please log in to continue...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Show authentication page
-  if (!isAuthenticated) {
-    return (
-      <TooltipProvider>
-        <Switch>
-          <Route path="/auth" component={Auth} />
-          <Route component={() => {
-            setLocation("/auth");
-            return null;
-          }} />
-        </Switch>
-      </TooltipProvider>
-    );
+  // Show authentication page if no user
+  if (!user) {
+    return <Auth />;
   }
   
   // Show main application with authenticated layout

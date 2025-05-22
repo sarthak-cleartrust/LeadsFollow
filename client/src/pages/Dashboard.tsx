@@ -17,14 +17,24 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [showGmailModal, setShowGmailModal] = useState(false);
   
-  // Query for prospects with proper type handling
+  // Query for prospects with error handling
   const { data: prospects = [] } = useQuery({
-    queryKey: ["/api/prospects"]
+    queryKey: ["/api/prospects"],
+    enabled: !!user,
+    retry: false,
+    onError: () => {
+      console.log("Could not load prospects");
+    }
   });
   
-  // Query for follow-ups with proper type handling
+  // Query for follow-ups with error handling
   const { data: followUps = [] } = useQuery({
-    queryKey: ["/api/follow-ups"]
+    queryKey: ["/api/follow-ups"],
+    enabled: !!user,
+    retry: false,
+    onError: () => {
+      console.log("Could not load follow-ups");
+    }
   });
   
   // Calculate stats

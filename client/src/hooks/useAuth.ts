@@ -28,20 +28,36 @@ export function useAuth() {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Fetch current user
-  const { data: user, isLoading, error } = useQuery({
+  // Fetch current user with fallback for unauthorized
+  const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    onSuccess: (data) => {
-      if (data) {
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    queryFn: async ({ queryKey }) => {
+      try {
+        const res = await fetch(queryKey[0] as string, {
+          credentials: "include",
+        });
+        
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          return null;
+        }
+        
+        if (!res.ok) {
+          throw new Error(`${res.status}: ${res.statusText}`);
+        }
+        
+        const data = await res.json();
         setIsAuthenticated(true);
-      } else {
+        return data;
+      } catch (error) {
         setIsAuthenticated(false);
+        throw error;
       }
-    },
-    onError: () => {
-      setIsAuthenticated(false);
     }
   });
 
@@ -54,14 +70,17 @@ export function useAuth() {
     onSuccess: (data) => {
       setIsAuthenticated(true);
       queryClient.setQueryData(["/api/auth/user"], data);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
       toast({
         title: "Login successful",
         description: `Welcome back, ${data.fullName}!`,
       });
       
-      // Force a hard redirect to the dashboard
-      window.location.replace("/");
+      // Use simple window.location
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
     },
     onError: (error: Error) => {
       setIsAuthenticated(false);
