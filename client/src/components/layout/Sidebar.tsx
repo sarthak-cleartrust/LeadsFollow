@@ -81,29 +81,28 @@ export default function Sidebar() {
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.name}>
-              <Link href={item.href}>
-                <a
-                  className={cn(
-                    "flex items-center px-3 py-2 rounded-md transition-standard",
-                    item.active
-                      ? "text-primary bg-blue-50 dark:bg-primary/10 hover:bg-blue-100 dark:hover:bg-primary/20"
-                      : "text-foreground hover:bg-neutral-200 dark:hover:bg-muted"
-                  )}
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
-                  {item.badge && (
-                    <Badge 
-                      className={cn(
-                        "ml-auto", 
-                        item.badgeColor || "bg-primary text-white"
-                      )}
-                      variant="outline"
-                    >
-                      {item.badge}
-                    </Badge>
-                  )}
-                </a>
+              <Link 
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-2 rounded-md transition-standard",
+                  item.active
+                    ? "text-primary bg-blue-50 dark:bg-primary/10 hover:bg-blue-100 dark:hover:bg-primary/20"
+                    : "text-foreground hover:bg-neutral-200 dark:hover:bg-muted"
+                )}
+              >
+                {item.icon}
+                <span>{item.name}</span>
+                {item.badge && (
+                  <Badge 
+                    className={cn(
+                      "ml-auto", 
+                      item.badgeColor || "bg-primary text-white"
+                    )}
+                    variant="outline"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
               </Link>
             </li>
           ))}
