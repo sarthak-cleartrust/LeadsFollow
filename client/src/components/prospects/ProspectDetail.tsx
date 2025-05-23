@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { formatRelativeTime, getInitials } from "@/lib/gmail";
 import { 
@@ -81,7 +81,7 @@ export default function ProspectDetail({ prospectId }: ProspectDetailProps) {
   });
   
   // Check if follow-up is needed based on last contact date and settings
-  const needsFollowUp = React.useMemo(() => {
+  const needsFollowUp = useMemo(() => {
     if (!prospect?.lastContactDate || !settings) return false;
     
     const lastContact = new Date(prospect.lastContactDate);
