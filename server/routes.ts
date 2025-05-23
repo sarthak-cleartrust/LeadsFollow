@@ -7,6 +7,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { z } from "zod";
 import { AuthenticatedRequest, isAuthenticated } from "./auth";
 import { getAuthUrl, getTokenFromCode, processEmails } from "./gmail";
+import { checkFollowUpNeeds, autoCreateFollowUpTasks, getNotificationSummary } from "./notifications";
 import {
   insertUserSchema,
   insertProspectSchema,

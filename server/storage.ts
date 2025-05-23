@@ -16,7 +16,7 @@ import {
   InsertFollowUpSetting,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 // Storage interface for all operations
 export interface IStorage {
@@ -412,7 +412,7 @@ export class DatabaseStorage implements IStorage {
       .from(followUps)
       .where(
         and(
-          sql`${followUps.prospectId} = ANY(ARRAY[${prospectIds}])`,
+          inArray(followUps.prospectId, prospectIds),
           eq(followUps.completed, false)
         )
       )
