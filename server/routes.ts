@@ -500,6 +500,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification and alert routes
+  app.get("/api/notifications/alerts", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const alerts = await checkFollowUpNeeds(req.user!.id);
+      res.json(alerts);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/notifications/summary", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const summary = await getNotificationSummary(req.user!.id);
+      res.json(summary);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/notifications/auto-create-tasks", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const tasksCreated = await autoCreateFollowUpTasks(req.user!.id);
+      res.json({ tasksCreated, message: `${tasksCreated} follow-up tasks created automatically` });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // Follow-up settings routes
   app.get("/api/follow-up-settings", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
