@@ -52,9 +52,7 @@ export default function FollowUpModal({ isOpen, onClose, prospect }: FollowUpMod
         type: followUpType,
         prospectId: prospect.id,
         dueDate: date.toISOString(),
-        notes: notes || null,
-        completed: false,
-        completedDate: null
+        notes: notes || null
       });
       
       // Invalidate queries to refresh data

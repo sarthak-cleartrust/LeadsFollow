@@ -116,8 +116,9 @@ export const insertFollowUpSchema = createInsertSchema(followUps).pick({
   dueDate: true,
   type: true,
   notes: true,
-  completed: true,
-  completedDate: true,
+}).extend({
+  completed: z.boolean().optional(),
+  completedDate: z.date().nullable().optional(),
 });
 
 // FollowUpSettings table
