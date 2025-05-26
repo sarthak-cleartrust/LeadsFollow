@@ -48,16 +48,13 @@ export default function FollowUpModal({ isOpen, onClose, prospect }: FollowUpMod
     setIsSubmitting(true);
     
     try {
-      await apiRequest("/api/follow-ups", {
-        method: "POST",
-        body: JSON.stringify({
-          type: followUpType,
-          prospectId: prospect.id,
-          dueDate: date,
-          notes: notes || null,
-          completed: false,
-          completedDate: null
-        })
+      await apiRequest("POST", "/api/follow-ups", {
+        type: followUpType,
+        prospectId: prospect.id,
+        dueDate: date,
+        notes: notes || null,
+        completed: false,
+        completedDate: null
       });
       
       // Invalidate queries to refresh data
