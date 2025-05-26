@@ -148,21 +148,7 @@ export default function ProspectDetail({ prospectId }: ProspectDetailProps) {
           </div>
         </div>
         
-        <div className="flex items-start space-x-2">
-          <Button 
-            variant="outline" 
-            className="px-3 py-1.5 border border-primary text-primary hover:bg-blue-50 dark:hover:bg-primary/10 text-sm flex items-center"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-          <Button 
-            className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white text-sm flex items-center"
-          >
-            <Mail className="h-4 w-4 mr-1" />
-            Send Email
-          </Button>
-        </div>
+
       </div>
       
       {/* Tabs Navigation */}
