@@ -161,6 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
+    res.set('ETag', `"${Date.now()}"`);
     
     const responseData = { 
       id: freshUser!.id, 
@@ -168,10 +169,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: freshUser!.email,
       fullName: freshUser!.fullName,
       gmailConnected: freshUser!.gmailConnected,
-      lastSyncDate: freshUser!.lastSyncDate || null
+      lastSyncDate: freshUser!.lastSyncDate,
+      _timestamp: Date.now()
     };
     
-    console.log('[DEBUG] API Response:', responseData);
     res.json(responseData);
   });
 
