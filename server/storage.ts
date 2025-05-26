@@ -424,7 +424,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async createFollowUp(insertFollowUp: InsertFollowUp): Promise<FollowUp> {
+  async createFollowUp(insertFollowUp: any): Promise<FollowUp> {
     const [followUp] = await db.insert(followUps).values(insertFollowUp).returning();
     return followUp;
   }
