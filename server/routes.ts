@@ -263,9 +263,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emails = await processEmails(req.user!);
       
       // Update last sync date
-      await storage.updateUser(req.user!.id, {
-        lastSyncDate: new Date()
+      const syncTime = new Date();
+      console.log(`Updating lastSyncDate for user ${req.user!.id} to:`, syncTime);
+      const updatedUser = await storage.updateUser(req.user!.id, {
+        lastSyncDate: syncTime
       });
+      console.log('Updated user:', updatedUser?.lastSyncDate);
       
       res.json({ success: true, emailsProcessed: emails.length });
     } catch (err: any) {
