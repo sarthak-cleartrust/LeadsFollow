@@ -97,6 +97,12 @@ export default function FollowUps() {
     if (activeTab === "completed") matchesTab = isCompleted;
     
     return matchesSearch && matchesTab;
+  })?.sort((a: any, b: any) => {
+    // Sort by last contact date (ascending - oldest contact first)
+    const aLastContact = a.prospect.lastContactDate ? new Date(a.prospect.lastContactDate) : new Date(0);
+    const bLastContact = b.prospect.lastContactDate ? new Date(b.prospect.lastContactDate) : new Date(0);
+    
+    return aLastContact.getTime() - bLastContact.getTime();
   });
   
   // Get prospects that need follow-up but don't have scheduled tasks
