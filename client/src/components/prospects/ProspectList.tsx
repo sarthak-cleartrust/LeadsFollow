@@ -120,11 +120,11 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
         return 0;
       });
     } else if (statusFilter === "follow-up") {
-      // For follow-up filter, sort by last contact date (ascending - oldest first)
+      // For follow-up filter, sort by last contact date (descending - newest first)
       return filteredProspects.sort((a: any, b: any) => {
         const aDate = a.lastContactDate ? new Date(a.lastContactDate) : new Date(0);
         const bDate = b.lastContactDate ? new Date(b.lastContactDate) : new Date(0);
-        return aDate.getTime() - bDate.getTime();
+        return bDate.getTime() - aDate.getTime();
       });
     } else {
       // For other filters, keep default order

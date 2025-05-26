@@ -29,11 +29,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // Schema for form validation
 const prospectFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  company: z.string().optional(),
-  position: z.string().optional(),
-  phone: z.string().optional(),
+  name: z.string()
+    .min(1, "Name is required")
+    .max(50, "Name must be 50 characters or less"),
+  email: z.string()
+    .min(1, "Email is required")
+    .email("Invalid email address"),
+  company: z.string()
+    .max(50, "Company name must be 50 characters or less")
+    .optional()
+    .or(z.literal("")),
+  position: z.string()
+    .max(20, "Position must be 20 characters or less")
+    .optional()
+    .or(z.literal("")),
+  phone: z.string()
+    .regex(/^\d{0,10}$/, "Phone must contain only numbers and be 10 digits or less")
+    .optional()
+    .or(z.literal("")),
   category: z.string().optional(),
 });
 
