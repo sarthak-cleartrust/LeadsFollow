@@ -477,11 +477,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Convert dueDate string to Date object before validation
+      // Convert dueDate string to timestamp as you suggested
+      const stringToTimestamp = (dateString: string) => {
+        const date = new Date(dateString);
+        return date;
+      };
+      
       const requestData = {
         ...req.body,
-        dueDate: new Date(req.body.dueDate)
+        dueDate: stringToTimestamp(req.body.dueDate)
       };
+      
+      console.log("Request data before validation:", requestData);
       
       const validatedData = insertFollowUpSchema.parse(requestData);
       
