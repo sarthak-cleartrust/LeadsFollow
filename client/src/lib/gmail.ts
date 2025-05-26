@@ -53,6 +53,7 @@ export function useSyncGmail() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Gmail sync complete",
         description: `Processed ${data.emailsProcessed} new emails.`,

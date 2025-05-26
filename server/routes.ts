@@ -153,13 +153,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/auth/user", isAuthenticated, (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/auth/user", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+    // Get fresh user data from storage to include lastSyncDate
+    const freshUser = await storage.getUser(req.user!.id);
+    
     res.json({ 
-      id: req.user!.id, 
-      username: req.user!.username, 
-      email: req.user!.email,
-      fullName: req.user!.fullName,
-      gmailConnected: req.user!.gmailConnected
+      id: freshUser!.id, 
+      username: freshUser!.username, 
+      email: freshUser!.email,
+      fullName: freshUser!.fullName,
+      gmailConnected: freshUser!.gmailConnected,
+      lastSyncDate: freshUser!.lastSyncDate
     });
   });
 
