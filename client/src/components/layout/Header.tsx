@@ -22,6 +22,9 @@ export default function Header() {
   const { user, logout, isLogoutPending } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isDark, setIsDark] = useState(() => 
+    document.documentElement.classList.contains('dark')
+  );
 
   // Query pending follow-ups for notification count
   const { data: followUps } = useQuery({
@@ -83,22 +86,24 @@ export default function Header() {
                 className="p-2 text-neutral-500 hover:text-primary transition-standard"
                 onClick={() => {
                   const root = document.documentElement;
-                  const isDark = root.classList.contains('dark');
+                  const currentlyDark = root.classList.contains('dark');
                   
-                  if (isDark) {
+                  if (currentlyDark) {
                     root.classList.remove('dark');
                     root.classList.add('light');
                     localStorage.setItem('leadfollow-theme', 'light');
+                    setIsDark(false);
                     console.log("Switched to light mode");
                   } else {
                     root.classList.remove('light');
                     root.classList.add('dark');
                     localStorage.setItem('leadfollow-theme', 'dark');
+                    setIsDark(true);
                     console.log("Switched to dark mode");
                   }
                 }}
               >
-                {document.documentElement.classList.contains('dark') ? (
+                {isDark ? (
                   <Sun className="h-5 w-5" />
                 ) : (
                   <Moon className="h-5 w-5" />
