@@ -477,7 +477,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const validatedData = insertFollowUpSchema.parse(req.body);
+      // Convert dueDate string to Date object before validation
+      const requestData = {
+        ...req.body,
+        dueDate: new Date(req.body.dueDate),
+        completedDate: req.body.completedDate ? new Date(req.body.completedDate) : null
+      };
+      
+      const validatedData = insertFollowUpSchema.parse(requestData);
       
       // Verify prospect belongs to user
       const prospect = await storage.getProspect(validatedData.prospectId);
