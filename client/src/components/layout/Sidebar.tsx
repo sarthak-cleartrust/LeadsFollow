@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Sidebar() {
@@ -109,6 +110,14 @@ export default function Sidebar() {
         </ul>
       </nav>
       
+      {/* Theme Toggle */}
+      <div className="border-t border-neutral-300 dark:border-border p-4">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-medium">Dark Mode</span>
+          <ThemeToggle />
+        </div>
+      </div>
+
       {/* Gmail Integration Status */}
       <div className="border-t border-neutral-300 dark:border-border p-4">
         <div className="bg-neutral-200 dark:bg-muted p-3 rounded-md">
