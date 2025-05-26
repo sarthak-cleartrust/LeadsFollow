@@ -51,7 +51,7 @@ export default function FollowUpModal({ isOpen, onClose, prospect }: FollowUpMod
       await apiRequest("POST", "/api/follow-ups", {
         type: followUpType,
         prospectId: prospect.id,
-        dueDate: date,
+        dueDate: date.toISOString(),
         notes: notes || null,
         completed: false,
         completedDate: null
