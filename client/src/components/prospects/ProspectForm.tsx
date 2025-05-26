@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,8 +67,7 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
   // Setup form with default values
   const form = useForm<ProspectFormValues>({
     resolver: zodResolver(prospectFormSchema),
-    mode: "onChange", // Validate on every change for most fields
-    reValidateMode: "onBlur", // Re-validate on blur for better UX
+    mode: "onBlur", // Validate on blur by default
     defaultValues: {
       name: prospect?.name || "",
       email: prospect?.email || "",
@@ -78,6 +77,23 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
       category: prospect?.category || "",
     },
   });
+  
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: prospect?.name || "",
+        email: prospect?.email || "",
+        company: prospect?.company || "",
+        position: prospect?.position || "",
+        phone: prospect?.phone || "",
+        category: prospect?.category || "",
+      });
+    } else {
+      // Reset form when modal is closed
+      form.reset();
+    }
+  }, [isOpen, prospect, form]);
   
   // Create prospect mutation
   const createProspect = useMutation({
@@ -171,7 +187,12 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
                       className={cn(
                         fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
                       )}
-                      {...field} 
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        // Trigger immediate validation for name
+                        form.trigger("name");
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -217,7 +238,11 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
                         className={cn(
                           fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
-                        {...field} 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.trigger("company");
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -237,7 +262,11 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
                         className={cn(
                           fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
-                        {...field} 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.trigger("position");
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -259,7 +288,11 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
                         className={cn(
                           fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
                         )}
-                        {...field} 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.trigger("phone");
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
