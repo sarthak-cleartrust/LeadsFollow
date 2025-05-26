@@ -70,13 +70,21 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
       return res.json();
     },
     onSuccess: (newProspect) => {
+      // Update the prospects list cache immediately
+      queryClient.setQueryData(["/api/prospects"], (oldData: any[]) => {
+        if (!oldData) return [newProspect];
+        return [newProspect, ...oldData];
+      });
+      
       toast({
         title: "Prospect created",
         description: "The prospect has been created successfully.",
       });
       
-      // Force a complete page refresh to show the new prospect
-      window.location.href = `/prospects?id=${newProspect.id}`;
+      if (onProspectCreated) {
+        onProspectCreated(newProspect);
+      }
+      onClose();
     },
     onError: (error: Error) => {
       toast({

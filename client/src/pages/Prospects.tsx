@@ -79,9 +79,11 @@ export default function Prospects() {
         onAddProspect={handleAddProspect}
       />
       
-      <ProspectDetail 
-        prospectId={selectedProspectId!}
-      />
+      {selectedProspectId && (
+        <ProspectDetail 
+          prospectId={selectedProspectId}
+        />
+      )}
       
       <ProspectForm 
         isOpen={showNewProspectModal}
