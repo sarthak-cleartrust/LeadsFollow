@@ -48,7 +48,7 @@ export function useSyncGmail() {
   
   return useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/gmail/sync", {});
+      const res = await apiRequest("GET", "/api/gmail/sync");
       return res.json();
     },
     onSuccess: (data) => {

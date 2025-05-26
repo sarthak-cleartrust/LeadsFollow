@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/gmail/sync", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/gmail/sync", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user!.gmailConnected) {
         return res.status(400).json({ message: "Gmail not connected" });
