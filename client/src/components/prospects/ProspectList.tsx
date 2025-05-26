@@ -30,7 +30,7 @@ interface ProspectListProps {
 export default function ProspectList({ selectedProspectId, onSelectProspect, onAddProspect, prospects: propProspects }: ProspectListProps) {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("follow-up");
   
   // Use prospects from props or fetch if not provided
   const { data: fetchedProspects, isLoading } = useQuery({
