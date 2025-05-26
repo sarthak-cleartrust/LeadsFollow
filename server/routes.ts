@@ -477,6 +477,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log("Raw request body:", req.body);
+      
       // Convert dueDate string to Date object before validation
       const requestData = {
         ...req.body,
@@ -484,7 +486,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedDate: req.body.completedDate ? new Date(req.body.completedDate) : null
       };
       
+      console.log("Processed request data:", requestData);
+      
       const validatedData = insertFollowUpSchema.parse(requestData);
+      
+      console.log("Validated data:", validatedData);
       
       // Verify prospect belongs to user
       const prospect = await storage.getProspect(validatedData.prospectId);
@@ -495,6 +501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const followUp = await storage.createFollowUp(validatedData);
       res.status(201).json(followUp);
     } catch (err: any) {
+      console.log("Full error:", err);
       res.status(400).json({ message: err.message });
     }
   });
