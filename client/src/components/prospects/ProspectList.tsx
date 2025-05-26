@@ -92,6 +92,33 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
     
     return matchesSearch && matchesStatus;
   });
+
+  // Custom sorting for "ALL" view
+  const sortedProspects = statusFilter === "all" 
+    ? filteredProspects.sort((a: any, b: any) => {
+        // Active prospects first (by creation date, newest first)
+        if (a.statusInfo.status === "active" && b.statusInfo.status !== "active") {
+          return -1;
+        }
+        if (b.statusInfo.status === "active" && a.statusInfo.status !== "active") {
+          return 1;
+        }
+        
+        // Both active - sort by creation date (newest first)
+        if (a.statusInfo.status === "active" && b.statusInfo.status === "active") {
+          return b.id - a.id; // Higher ID = more recent
+        }
+        
+        // Both non-active - sort by last contact date (oldest first)
+        if (a.statusInfo.status !== "active" && b.statusInfo.status !== "active") {
+          const aDate = a.lastContactDate ? new Date(a.lastContactDate) : new Date(0);
+          const bDate = b.lastContactDate ? new Date(b.lastContactDate) : new Date(0);
+          return aDate.getTime() - bDate.getTime();
+        }
+        
+        return 0;
+      })
+    : filteredProspects;
   
   // Get counts for each status
   const prospectCounts = {
@@ -193,7 +220,7 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
               </div>
             </div>
           ))
-        ) : filteredProspects.length === 0 ? (
+        ) : sortedProspects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 p-4 text-center">
             <div className="text-neutral-500 mb-2">No prospects found</div>
             <Button 
@@ -207,7 +234,7 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
             </Button>
           </div>
         ) : (
-          filteredProspects.map((prospect: any) => (
+          sortedProspects.map((prospect: any) => (
             <div 
               key={prospect.id}
               className={cn(
