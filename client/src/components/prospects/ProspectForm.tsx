@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 // Schema for form validation
 const prospectFormSchema = z.object({
@@ -66,6 +67,7 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
   // Setup form with default values
   const form = useForm<ProspectFormValues>({
     resolver: zodResolver(prospectFormSchema),
+    mode: "onChange", // Validate on every change
     defaultValues: {
       name: prospect?.name || "",
       email: prospect?.email || "",
@@ -159,11 +161,17 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input 
+                      placeholder="John Doe" 
+                      className={cn(
+                        fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      )}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,11 +181,17 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="john@example.com" {...field} />
+                    <Input 
+                      placeholder="john@example.com" 
+                      className={cn(
+                        fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      )}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,11 +202,17 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
               <FormField
                 control={form.control}
                 name="company"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Company</FormLabel>
                     <FormControl>
-                      <Input placeholder="Company name" {...field} />
+                      <Input 
+                        placeholder="Company name" 
+                        className={cn(
+                          fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        )}
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -202,11 +222,17 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
               <FormField
                 control={form.control}
                 name="position"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Position</FormLabel>
                     <FormControl>
-                      <Input placeholder="Job title" {...field} />
+                      <Input 
+                        placeholder="Job title" 
+                        className={cn(
+                          fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        )}
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -218,11 +244,17 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
               <FormField
                 control={form.control}
                 name="phone"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="Phone number" {...field} />
+                      <Input 
+                        placeholder="Phone number" 
+                        className={cn(
+                          fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        )}
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
