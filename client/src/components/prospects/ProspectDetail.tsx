@@ -161,12 +161,7 @@ export default function ProspectDetail({ prospectId }: ProspectDetailProps) {
             >
               Communication History
             </TabsTrigger>
-            <TabsTrigger 
-              value="notes" 
-              className="px-4 py-3 text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=inactive]:text-neutral-500 data-[state=inactive]:hover:text-primary rounded-none"
-            >
-              Notes
-            </TabsTrigger>
+
             <TabsTrigger 
               value="tasks" 
               className="px-4 py-3 text-sm font-medium data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=inactive]:text-neutral-500 data-[state=inactive]:hover:text-primary rounded-none"
@@ -201,23 +196,7 @@ export default function ProspectDetail({ prospectId }: ProspectDetailProps) {
           />
         )}
         
-        {activeTab === "notes" && (
-          <div className="p-4">
-            <div className="bg-white dark:bg-card rounded-md shadow-sm p-4">
-              <h3 className="font-medium mb-3">Notes</h3>
-              <p className="text-neutral-500 text-sm">No notes yet. Add your first note below.</p>
-              <textarea 
-                className="w-full mt-3 p-3 border border-neutral-300 dark:border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                rows={4}
-                placeholder="Add notes about this prospect..."
-              ></textarea>
-              <div className="flex justify-end mt-3">
-                <Button size="sm">Save Note</Button>
-              </div>
-            </div>
-          </div>
-        )}
-        
+
         {activeTab === "tasks" && (
           <div className="p-4 space-y-4">
             <div className="bg-white dark:bg-card rounded-md shadow-sm p-4">
