@@ -93,9 +93,10 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
     return matchesSearch && matchesStatus;
   });
 
-  // Custom sorting for "ALL" view
-  const sortedProspects = statusFilter === "all" 
-    ? filteredProspects.sort((a: any, b: any) => {
+  // Custom sorting for different filters
+  const sortedProspects = (() => {
+    if (statusFilter === "all") {
+      return filteredProspects.sort((a: any, b: any) => {
         // Active prospects first (by creation date, newest first)
         if (a.statusInfo.status === "active" && b.statusInfo.status !== "active") {
           return -1;
@@ -117,8 +118,19 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
         }
         
         return 0;
-      })
-    : filteredProspects;
+      });
+    } else if (statusFilter === "follow-up") {
+      // For follow-up filter, sort by last contact date (ascending - oldest first)
+      return filteredProspects.sort((a: any, b: any) => {
+        const aDate = a.lastContactDate ? new Date(a.lastContactDate) : new Date(0);
+        const bDate = b.lastContactDate ? new Date(b.lastContactDate) : new Date(0);
+        return aDate.getTime() - bDate.getTime();
+      });
+    } else {
+      // For other filters, keep default order
+      return filteredProspects;
+    }
+  })();
   
   // Get counts for each status
   const prospectCounts = {
