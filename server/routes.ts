@@ -175,6 +175,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(responseData);
   });
 
+  // Test endpoint to debug lastSyncDate
+  app.get("/api/test/user-sync", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+    const freshUser = await storage.getUser(req.user!.id);
+    console.log('[TEST DEBUG] Full user object:', freshUser);
+    res.json({
+      message: "Debug endpoint",
+      userId: req.user!.id,
+      lastSyncDate: freshUser?.lastSyncDate,
+      fullUser: freshUser
+    });
+  });
+
   // Gmail integration routes
   app.get("/api/gmail/auth-url", isAuthenticated, (req: AuthenticatedRequest, res: Response) => {
     const authUrl = getAuthUrl();
@@ -270,19 +282,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const emails = await processEmails(req.user!);
       
-      // Update last sync date
+      // Update last sync date directly in database
       const syncTime = new Date();
-      try {
-        console.log(`[SYNC DEBUG] Updating lastSyncDate for user ${req.user!.id} to:`, syncTime);
-        const updatedUser = await storage.updateUser(req.user!.id, {
-          lastSyncDate: syncTime
-        });
-        console.log('[SYNC DEBUG] Updated user lastSyncDate:', updatedUser?.lastSyncDate);
-      } catch (updateError) {
-        console.error('[SYNC DEBUG] Error updating lastSyncDate:', updateError);
-      }
+      await storage.updateUser(req.user!.id, {
+        lastSyncDate: syncTime
+      });
       
-      res.json({ success: true, emailsProcessed: emails.length });
+      res.json({ 
+        success: true, 
+        emailsProcessed: emails.length,
+        lastSyncDate: syncTime
+      });
     } catch (err: any) {
       res.status(400).json({ message: err.message });
     }
