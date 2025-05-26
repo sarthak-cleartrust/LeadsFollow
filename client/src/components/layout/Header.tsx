@@ -81,7 +81,12 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 className="p-2 text-neutral-500 hover:text-primary transition-standard"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                onClick={() => {
+                  console.log("Current theme:", theme);
+                  const newTheme = theme === "dark" ? "light" : "dark";
+                  console.log("Setting theme to:", newTheme);
+                  setTheme(newTheme);
+                }}
               >
                 {theme === "dark" ? (
                   <Sun className="h-5 w-5" />
