@@ -477,20 +477,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      console.log("Raw request body:", req.body);
-      
       // Convert dueDate string to Date object before validation
       const requestData = {
         ...req.body,
-        dueDate: new Date(req.body.dueDate),
-        completedDate: req.body.completedDate ? new Date(req.body.completedDate) : null
+        dueDate: new Date(req.body.dueDate)
       };
       
-      console.log("Processed request data:", requestData);
-      
       const validatedData = insertFollowUpSchema.parse(requestData);
-      
-      console.log("Validated data:", validatedData);
       
       // Verify prospect belongs to user
       const prospect = await storage.getProspect(validatedData.prospectId);
@@ -501,7 +494,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const followUp = await storage.createFollowUp(validatedData);
       res.status(201).json(followUp);
     } catch (err: any) {
-      console.log("Full error:", err);
+      if (err.issues) {
+        console.log("Validation error details:", JSON.stringify(err.issues, null, 2));
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          details: err.issues.map((issue: any) => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+            received: issue.received
+          }))
+        });
+      }
+      console.log("Error:", err.message);
       res.status(400).json({ message: err.message });
     }
   });
