@@ -163,6 +163,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       rawUser: freshUser
     });
     
+    // Disable caching for this endpoint to ensure fresh data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
     res.json({ 
       id: freshUser!.id, 
       username: freshUser!.username, 
