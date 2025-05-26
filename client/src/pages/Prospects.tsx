@@ -47,6 +47,12 @@ export default function Prospects() {
     setSelectedProspectId(undefined);
   };
   
+  // Handle new prospect created
+  const handleProspectCreated = (newProspect: any) => {
+    setSelectedProspectId(newProspect.id);
+    setShowNewProspectModal(false);
+  };
+  
   // Close New Prospect Modal
   const handleCloseNewProspectModal = () => {
     setShowNewProspectModal(false);
@@ -75,6 +81,7 @@ export default function Prospects() {
       <ProspectForm 
         isOpen={showNewProspectModal}
         onClose={handleCloseNewProspectModal}
+        onProspectCreated={handleProspectCreated}
       />
     </div>
   );

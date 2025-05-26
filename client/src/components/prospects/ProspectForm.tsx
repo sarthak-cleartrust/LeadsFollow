@@ -43,9 +43,10 @@ interface ProspectFormProps {
   isOpen: boolean;
   onClose: () => void;
   prospect?: any; // For editing existing prospect
+  onProspectCreated?: (prospect: any) => void;
 }
 
-export default function ProspectForm({ isOpen, onClose, prospect }: ProspectFormProps) {
+export default function ProspectForm({ isOpen, onClose, prospect, onProspectCreated }: ProspectFormProps) {
   const { toast } = useToast();
   const isEditing = !!prospect;
   
@@ -68,12 +69,15 @@ export default function ProspectForm({ isOpen, onClose, prospect }: ProspectForm
       const res = await apiRequest("POST", "/api/prospects", data);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newProspect) => {
       queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
       toast({
         title: "Prospect created",
         description: "The prospect has been created successfully.",
       });
+      if (onProspectCreated) {
+        onProspectCreated(newProspect);
+      }
       onClose();
     },
     onError: (error: Error) => {
