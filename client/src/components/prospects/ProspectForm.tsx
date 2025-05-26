@@ -69,8 +69,9 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
       const res = await apiRequest("POST", "/api/prospects", data);
       return res.json();
     },
-    onSuccess: (newProspect) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+    onSuccess: async (newProspect) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/prospects"] });
       toast({
         title: "Prospect created",
         description: "The prospect has been created successfully.",
