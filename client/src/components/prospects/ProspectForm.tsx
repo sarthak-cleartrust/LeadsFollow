@@ -70,21 +70,13 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
       return res.json();
     },
     onSuccess: (newProspect) => {
-      // First, manually add the new prospect to the cache
-      queryClient.setQueryData(["/api/prospects"], (oldData: any) => {
-        if (!oldData) return [newProspect];
-        return [newProspect, ...oldData]; // Add new prospect at the beginning
-      });
-      
       toast({
         title: "Prospect created",
         description: "The prospect has been created successfully.",
       });
       
-      if (onProspectCreated) {
-        onProspectCreated(newProspect);
-      }
-      onClose();
+      // Force a complete page refresh to show the new prospect
+      window.location.href = `/prospects?id=${newProspect.id}`;
     },
     onError: (error: Error) => {
       toast({
