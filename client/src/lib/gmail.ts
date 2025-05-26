@@ -52,10 +52,9 @@ export function useSyncGmail() {
       return res.json();
     },
     onSuccess: (data) => {
-      // Force complete cache refresh
+      // Force immediate cache refresh with refetch
       queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.refetchQueries({ queryKey: ["/api/auth/user"], type: 'active' });
       toast({
         title: "Gmail sync complete",
         description: `Processed ${data.emailsProcessed} new emails.`,
