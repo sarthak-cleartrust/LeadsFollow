@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   gmailConnected: boolean("gmail_connected").default(false),
   refreshToken: text("refresh_token"),
+  lastSyncDate: timestamp("last_sync_date"),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

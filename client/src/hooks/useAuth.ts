@@ -10,6 +10,7 @@ export interface User {
   email: string;
   fullName: string;
   gmailConnected: boolean;
+  lastSyncDate?: string | null;
 }
 
 export interface LoginCredentials {

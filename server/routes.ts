@@ -257,6 +257,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const emails = await processEmails(req.user!);
+      
+      // Update last sync date
+      await storage.updateUser(req.user!.id, {
+        lastSyncDate: new Date()
+      });
+      
       res.json({ success: true, emailsProcessed: emails.length });
     } catch (err: any) {
       res.status(400).json({ message: err.message });

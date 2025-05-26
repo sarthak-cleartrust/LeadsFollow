@@ -129,7 +129,7 @@ export default function Sidebar() {
           {user?.gmailConnected ? (
             <>
               <div className="text-xs text-neutral-500 mb-2">
-                Last synced: {isSyncing ? 'Syncing...' : 'Today, 10:45 AM'}
+                Last synced: {isSyncing ? 'Syncing...' : user?.lastSyncDate ? new Date(user.lastSyncDate).toLocaleDateString() + ', ' + new Date(user.lastSyncDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never'}
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
