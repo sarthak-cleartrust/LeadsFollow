@@ -71,22 +71,7 @@ export default function EmailItem({ email }: EmailItemProps) {
             
             {/* Attachments would go here if we had them */}
             
-            <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
-                className="px-3 py-1.5 border border-primary text-primary hover:bg-blue-50 dark:hover:bg-primary/10 text-sm flex items-center"
-              >
-                <Reply className="h-4 w-4 mr-1" />
-                Reply
-              </Button>
-              <Button 
-                variant="outline" 
-                className="px-3 py-1.5 border border-neutral-300 dark:border-border text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-muted text-sm flex items-center"
-              >
-                <Forward className="h-4 w-4 mr-1" />
-                Forward
-              </Button>
-            </div>
+
           </>
         )}
       </div>
