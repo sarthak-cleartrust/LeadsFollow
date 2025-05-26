@@ -496,7 +496,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const followUp = await storage.createFollowUp(followUpData);
       res.status(201).json(followUp);
     } catch (err: any) {
-      console.log("Error creating follow-up:", err.message);
+      console.log("=== FULL ERROR DETAILS ===");
+      console.log("Error object:", err);
+      console.log("Error message:", err.message);
+      console.log("Error stack:", err.stack);
+      if (err.issues) {
+        console.log("Validation issues:", JSON.stringify(err.issues, null, 2));
+      }
+      console.log("=== END ERROR DETAILS ===");
       res.status(400).json({ message: err.message });
     }
   });
