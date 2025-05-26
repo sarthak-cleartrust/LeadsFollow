@@ -82,13 +82,23 @@ export default function Header() {
                 size="icon"
                 className="p-2 text-neutral-500 hover:text-primary transition-standard"
                 onClick={() => {
-                  console.log("Current theme:", theme);
-                  const newTheme = theme === "dark" ? "light" : "dark";
-                  console.log("Setting theme to:", newTheme);
-                  setTheme(newTheme);
+                  const root = document.documentElement;
+                  const isDark = root.classList.contains('dark');
+                  
+                  if (isDark) {
+                    root.classList.remove('dark');
+                    root.classList.add('light');
+                    localStorage.setItem('leadfollow-theme', 'light');
+                    console.log("Switched to light mode");
+                  } else {
+                    root.classList.remove('light');
+                    root.classList.add('dark');
+                    localStorage.setItem('leadfollow-theme', 'dark');
+                    console.log("Switched to dark mode");
+                  }
                 }}
               >
-                {theme === "dark" ? (
+                {document.documentElement.classList.contains('dark') ? (
                   <Sun className="h-5 w-5" />
                 ) : (
                   <Moon className="h-5 w-5" />
