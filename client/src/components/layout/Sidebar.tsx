@@ -56,7 +56,7 @@ export default function Sidebar() {
       icon: <Mail className="w-5 mr-3" />,
       active: location === "/follow-ups",
       badge: followUpCount > 0 ? followUpCount : null,
-      badgeColor: "bg-alert text-white"
+      badgeColor: "bg-red-500 text-white dark:bg-red-600"
     },
     {
       name: "Analytics",

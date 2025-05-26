@@ -65,7 +65,7 @@ export default function Header() {
                   <Bell className="h-5 w-5" />
                   {notificationCount > 0 && (
                     <Badge 
-                      className="absolute -top-1 -right-1 bg-alert hover:bg-alert text-white text-xs px-1 min-w-5 h-5 flex items-center justify-center"
+                      className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white text-xs px-1 min-w-5 h-5 flex items-center justify-center"
                       variant="outline"
                     >
                       {notificationCount}
