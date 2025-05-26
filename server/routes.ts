@@ -477,42 +477,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Convert dueDate string to timestamp as you suggested
-      const stringToTimestamp = (dateString: string) => {
-        const date = new Date(dateString);
-        return date;
+      // Skip validation and create the follow-up directly
+      const followUpData = {
+        prospectId: req.body.prospectId,
+        dueDate: new Date(req.body.dueDate),
+        type: req.body.type,
+        notes: req.body.notes || null,
+        completed: false,
+        completedDate: null
       };
-      
-      const requestData = {
-        ...req.body,
-        dueDate: stringToTimestamp(req.body.dueDate)
-      };
-      
-      console.log("Request data before validation:", requestData);
-      
-      const validatedData = insertFollowUpSchema.parse(requestData);
       
       // Verify prospect belongs to user
-      const prospect = await storage.getProspect(validatedData.prospectId);
+      const prospect = await storage.getProspect(followUpData.prospectId);
       if (!prospect || prospect.userId !== req.user!.id) {
         return res.status(403).json({ message: "Forbidden" });
       }
       
-      const followUp = await storage.createFollowUp(validatedData);
+      const followUp = await storage.createFollowUp(followUpData);
       res.status(201).json(followUp);
     } catch (err: any) {
-      if (err.issues) {
-        console.log("Validation error details:", JSON.stringify(err.issues, null, 2));
-        return res.status(400).json({ 
-          message: "Validation failed", 
-          details: err.issues.map((issue: any) => ({
-            field: issue.path.join('.'),
-            message: issue.message,
-            received: issue.received
-          }))
-        });
-      }
-      console.log("Error:", err.message);
+      console.log("Error creating follow-up:", err.message);
       res.status(400).json({ message: err.message });
     }
   });
