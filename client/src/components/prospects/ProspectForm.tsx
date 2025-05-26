@@ -69,13 +69,21 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
       const res = await apiRequest("POST", "/api/prospects", data);
       return res.json();
     },
-    onSuccess: async (newProspect) => {
-      await queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/prospects"] });
+    onSuccess: (newProspect) => {
+      // Immediately update the cache with the new prospect
+      queryClient.setQueryData(["/api/prospects"], (oldData: any) => {
+        if (!oldData) return [newProspect];
+        return [...oldData, newProspect];
+      });
+      
+      // Also invalidate to ensure fresh data on next fetch
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+      
       toast({
         title: "Prospect created",
         description: "The prospect has been created successfully.",
       });
+      
       if (onProspectCreated) {
         onProspectCreated(newProspect);
       }
