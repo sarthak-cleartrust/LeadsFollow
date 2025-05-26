@@ -41,6 +41,12 @@ export default function Prospects() {
     setShowNewProspectModal(false);
   };
   
+  // Open New Prospect Modal
+  const handleAddProspect = () => {
+    setShowNewProspectModal(true);
+    setSelectedProspectId(undefined);
+  };
+  
   // Close New Prospect Modal
   const handleCloseNewProspectModal = () => {
     setShowNewProspectModal(false);
@@ -59,6 +65,7 @@ export default function Prospects() {
       <ProspectList 
         selectedProspectId={selectedProspectId}
         onSelectProspect={handleSelectProspect}
+        onAddProspect={handleAddProspect}
       />
       
       <ProspectDetail 

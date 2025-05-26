@@ -23,9 +23,10 @@ export interface ProspectStatus {
 interface ProspectListProps {
   selectedProspectId?: number;
   onSelectProspect: (prospect: ProspectStatus) => void;
+  onAddProspect: () => void;
 }
 
-export default function ProspectList({ selectedProspectId, onSelectProspect }: ProspectListProps) {
+export default function ProspectList({ selectedProspectId, onSelectProspect, onAddProspect }: ProspectListProps) {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -117,7 +118,7 @@ export default function ProspectList({ selectedProspectId, onSelectProspect }: P
           <Button 
             size="sm" 
             className="text-xs bg-primary hover:bg-primary/90 text-white flex items-center"
-            onClick={() => setLocation("/prospects?new=true")}
+            onClick={onAddProspect}
           >
             <Plus className="h-3.5 w-3.5 mr-1" />
             Add
@@ -194,7 +195,7 @@ export default function ProspectList({ selectedProspectId, onSelectProspect }: P
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setLocation("/prospects?new=true")}
+              onClick={onAddProspect}
               className="flex items-center"
             >
               <Plus className="h-4 w-4 mr-1" />
