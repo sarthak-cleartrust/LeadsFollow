@@ -157,25 +157,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Get fresh user data from storage to include lastSyncDate
     const freshUser = await storage.getUser(req.user!.id);
     
-    console.log('[AUTH DEBUG] Fresh user data:', {
-      id: freshUser!.id,
-      lastSyncDate: freshUser!.lastSyncDate,
-      rawUser: freshUser
-    });
-    
     // Disable caching for this endpoint to ensure fresh data
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
     
-    res.json({ 
+    const responseData = { 
       id: freshUser!.id, 
       username: freshUser!.username, 
       email: freshUser!.email,
       fullName: freshUser!.fullName,
       gmailConnected: freshUser!.gmailConnected,
-      lastSyncDate: freshUser!.lastSyncDate
-    });
+      lastSyncDate: freshUser!.lastSyncDate || null
+    };
+    
+    console.log('[DEBUG] API Response:', responseData);
+    res.json(responseData);
   });
 
   // Gmail integration routes
