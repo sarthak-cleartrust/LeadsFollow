@@ -264,11 +264,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update last sync date
       const syncTime = new Date();
-      console.log(`Updating lastSyncDate for user ${req.user!.id} to:`, syncTime);
-      const updatedUser = await storage.updateUser(req.user!.id, {
-        lastSyncDate: syncTime
-      });
-      console.log('Updated user:', updatedUser?.lastSyncDate);
+      try {
+        console.log(`[SYNC DEBUG] Updating lastSyncDate for user ${req.user!.id} to:`, syncTime);
+        const updatedUser = await storage.updateUser(req.user!.id, {
+          lastSyncDate: syncTime
+        });
+        console.log('[SYNC DEBUG] Updated user lastSyncDate:', updatedUser?.lastSyncDate);
+      } catch (updateError) {
+        console.error('[SYNC DEBUG] Error updating lastSyncDate:', updateError);
+      }
       
       res.json({ success: true, emailsProcessed: emails.length });
     } catch (err: any) {
