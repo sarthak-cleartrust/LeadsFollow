@@ -477,6 +477,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log("=== RAW REQUEST BODY ===");
+      console.log("Raw body:", JSON.stringify(req.body, null, 2));
+      
       // Skip validation and create the follow-up directly
       const followUpData = {
         prospectId: req.body.prospectId,
@@ -486,6 +489,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completed: false,
         completedDate: null
       };
+      
+      console.log("=== PROCESSED DATA ===");
+      console.log("followUpData:", JSON.stringify(followUpData, null, 2));
+      console.log("dueDate type:", typeof followUpData.dueDate);
+      console.log("dueDate value:", followUpData.dueDate);
       
       // Verify prospect belongs to user
       const prospect = await storage.getProspect(followUpData.prospectId);
