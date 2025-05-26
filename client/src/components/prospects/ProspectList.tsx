@@ -24,18 +24,22 @@ interface ProspectListProps {
   selectedProspectId?: number;
   onSelectProspect: (prospect: ProspectStatus) => void;
   onAddProspect: () => void;
+  prospects?: any[];
 }
 
-export default function ProspectList({ selectedProspectId, onSelectProspect, onAddProspect }: ProspectListProps) {
+export default function ProspectList({ selectedProspectId, onSelectProspect, onAddProspect, prospects: propProspects }: ProspectListProps) {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   
-  // Query for prospects
-  const { data: prospects, isLoading } = useQuery({
+  // Use prospects from props or fetch if not provided
+  const { data: fetchedProspects, isLoading } = useQuery({
     queryKey: ["/api/prospects"],
     staleTime: 60 * 1000, // 1 minute
+    enabled: !propProspects, // Only fetch if prospects not provided as prop
   });
+  
+  const prospects = propProspects || fetchedProspects;
 
   // Query for follow-up settings to determine needed follow-ups
   const { data: settings } = useQuery({

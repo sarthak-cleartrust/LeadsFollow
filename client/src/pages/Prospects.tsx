@@ -31,7 +31,7 @@ export default function Prospects() {
   }, [selectedProspectId, showNewProspectModal, setLocation]);
   
   // Query for prospect list
-  const { data: prospects } = useQuery({
+  const { data: prospects, refetch: refetchProspects } = useQuery({
     queryKey: ["/api/prospects"],
     staleTime: 60 * 1000, // 1 minute
   });
@@ -50,9 +50,8 @@ export default function Prospects() {
   
   // Handle new prospect created
   const handleProspectCreated = (newProspect: any) => {
-    // Force refresh the prospects query
-    queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
-    queryClient.refetchQueries({ queryKey: ["/api/prospects"] });
+    // Force an immediate refetch of the prospects
+    refetchProspects();
     
     setSelectedProspectId(newProspect.id);
     setShowNewProspectModal(false);
@@ -77,6 +76,7 @@ export default function Prospects() {
         selectedProspectId={selectedProspectId}
         onSelectProspect={handleSelectProspect}
         onAddProspect={handleAddProspect}
+        prospects={prospects}
       />
       
       {selectedProspectId && (
