@@ -4,6 +4,7 @@ import ProspectList from "@/components/prospects/ProspectList";
 import ProspectDetail from "@/components/prospects/ProspectDetail";
 import ProspectForm from "@/components/prospects/ProspectForm";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 export default function Prospects() {
   const [location, setLocation] = useLocation();
@@ -49,6 +50,10 @@ export default function Prospects() {
   
   // Handle new prospect created
   const handleProspectCreated = (newProspect: any) => {
+    // Force refresh the prospects query
+    queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+    queryClient.refetchQueries({ queryKey: ["/api/prospects"] });
+    
     setSelectedProspectId(newProspect.id);
     setShowNewProspectModal(false);
   };

@@ -313,7 +313,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProspectsByUser(userId: number): Promise<Prospect[]> {
-    return db.select().from(prospects).where(eq(prospects.userId, userId));
+    return db.select().from(prospects).where(eq(prospects.userId, userId)).orderBy(desc(prospects.id));
   }
 
   async getProspectsRequiringFollowUp(userId: number): Promise<Prospect[]> {

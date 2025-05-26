@@ -70,8 +70,11 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
       return res.json();
     },
     onSuccess: (newProspect) => {
-      // Force a complete refresh of the prospects list
-      queryClient.removeQueries({ queryKey: ["/api/prospects"] });
+      // First, manually add the new prospect to the cache
+      queryClient.setQueryData(["/api/prospects"], (oldData: any) => {
+        if (!oldData) return [newProspect];
+        return [newProspect, ...oldData]; // Add new prospect at the beginning
+      });
       
       toast({
         title: "Prospect created",
