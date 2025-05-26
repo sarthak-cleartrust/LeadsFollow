@@ -26,7 +26,7 @@ export function ThemeProvider({
   storageKey = "leadfollow-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
+  const [theme, setThemeState] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
@@ -53,7 +53,7 @@ export function ThemeProvider({
     setTheme: (newTheme: Theme) => {
       console.log("ThemeProvider: setting theme from", theme, "to", newTheme);
       localStorage.setItem(storageKey, newTheme);
-      setTheme(newTheme);
+      setThemeState(newTheme);
       console.log("ThemeProvider: localStorage now has", localStorage.getItem(storageKey));
     },
   };
