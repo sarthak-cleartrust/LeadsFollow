@@ -157,6 +157,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Get fresh user data from storage to include lastSyncDate
     const freshUser = await storage.getUser(req.user!.id);
     
+    console.log('[AUTH DEBUG] Fresh user data:', {
+      id: freshUser!.id,
+      lastSyncDate: freshUser!.lastSyncDate,
+      rawUser: freshUser
+    });
+    
     res.json({ 
       id: freshUser!.id, 
       username: freshUser!.username, 
