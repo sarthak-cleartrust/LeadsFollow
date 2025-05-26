@@ -67,7 +67,8 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
   // Setup form with default values
   const form = useForm<ProspectFormValues>({
     resolver: zodResolver(prospectFormSchema),
-    mode: "onChange", // Validate on every change
+    mode: "onChange", // Validate on every change for most fields
+    reValidateMode: "onBlur", // Re-validate on blur for better UX
     defaultValues: {
       name: prospect?.name || "",
       email: prospect?.email || "",
@@ -190,7 +191,12 @@ export default function ProspectForm({ isOpen, onClose, prospect, onProspectCrea
                       className={cn(
                         fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500"
                       )}
-                      {...field} 
+                      {...field}
+                      onBlur={(e) => {
+                        field.onBlur();
+                        // Trigger validation on blur for email field
+                        form.trigger("email");
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
