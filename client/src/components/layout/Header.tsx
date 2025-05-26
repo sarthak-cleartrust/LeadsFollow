@@ -83,7 +83,15 @@ export default function Header() {
                 className="p-2 text-neutral-500 hover:text-primary transition-standard"
                 onClick={() => {
                   console.log("Current theme:", theme);
-                  const newTheme = theme === "dark" ? "light" : "dark";
+                  // Handle system theme properly
+                  let newTheme: "light" | "dark";
+                  if (theme === "system") {
+                    // If system theme, check what the actual system preference is and toggle from there
+                    const isDarkSystem = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    newTheme = isDarkSystem ? "light" : "dark";
+                  } else {
+                    newTheme = theme === "dark" ? "light" : "dark";
+                  }
                   console.log("Setting theme to:", newTheme);
                   setTheme(newTheme);
                 }}
