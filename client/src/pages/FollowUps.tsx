@@ -57,20 +57,43 @@ export default function FollowUps() {
       const res = await apiRequest("PUT", `/api/follow-ups/${id}`, data);
       return res.json();
     },
-    onSuccess: () => {
-      // Invalidate and refetch the follow-ups data
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["/api/follow-ups"] });
+
+      // Snapshot the previous value
+      const previousFollowUps = queryClient.getQueryData(["/api/follow-ups"]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["/api/follow-ups"], (old: any) => {
+        if (!old) return old;
+        return old.map((followUp: any) => 
+          followUp.id === id ? { ...followUp, ...data } : followUp
+        );
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousFollowUps };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousFollowUps) {
+        queryClient.setQueryData(["/api/follow-ups"], context.previousFollowUps);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to move follow-up",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      queryClient.refetchQueries({ queryKey: ["/api/follow-ups"] });
+    },
+    onSuccess: () => {
       toast({
         title: "Follow-up updated",
         description: "Follow-up has been moved successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to move follow-up",
-        variant: "destructive",
       });
     },
   });
