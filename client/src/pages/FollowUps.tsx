@@ -19,11 +19,12 @@ export default function FollowUps() {
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
   const [draggedItem, setDraggedItem] = useState<any>(null);
 
-  // Query for follow-ups
+  // Query for follow-ups with cache busting
   const { data: followUps = [], isLoading: isLoadingFollowUps } = useQuery({
-    queryKey: ["/api/follow-ups"],
-    staleTime: 0, // Force fresh data
-    gcTime: 0, // Don't cache
+    queryKey: ["/api/follow-ups", Date.now()], // Add timestamp to force fresh requests
+    queryFn: () => fetch(`/api/follow-ups?t=${Date.now()}`).then(res => res.json()),
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Complete follow-up mutation
