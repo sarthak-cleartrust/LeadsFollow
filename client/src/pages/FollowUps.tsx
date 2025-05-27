@@ -292,7 +292,7 @@ export default function FollowUps() {
       <div
         key={status}
         className={cn(
-          "flex-1 md:min-w-60 md:max-w-64 rounded-lg border-2 border-dashed p-3 mb-4 md:mb-0",
+          "w-full lg:flex-1 lg:min-w-60 lg:max-w-64 rounded-lg border-2 border-dashed p-3 mb-4 lg:mb-0",
           config.borderColor,
           config.bgColor
         )}
@@ -327,9 +327,9 @@ export default function FollowUps() {
       <div className="p-4 md:p-6 h-full overflow-y-auto">
         <div className="animate-pulse">
           <div className="h-6 md:h-8 bg-neutral-200 dark:bg-neutral-700 rounded w-32 md:w-48 mb-6"></div>
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex-1 h-48 md:h-64 bg-neutral-200 dark:bg-neutral-700 rounded-lg"></div>
+              <div key={i} className="w-full lg:flex-1 h-48 lg:h-64 bg-neutral-200 dark:bg-neutral-700 rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -347,7 +347,7 @@ export default function FollowUps() {
       </div>
 
       {/* Mobile: Stack columns vertically, Desktop: Horizontal scrolling */}
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 md:overflow-x-auto md:pb-4">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 lg:overflow-x-auto lg:pb-4">
         {renderColumn('overdue', categorizedFollowUps.overdue)}
         {renderColumn('today', categorizedFollowUps.today)}
         {renderColumn('upcoming', categorizedFollowUps.upcoming)}
