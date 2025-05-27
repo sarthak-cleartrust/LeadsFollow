@@ -59,15 +59,15 @@ export default function Dashboard() {
       return dueDate < today;
     })?.length || 0,
     activeProspects: prospects?.filter((p: any) => {
-      // Use same logic as ProspectList to determine if prospect is truly "active"
+      // Use EXACT same logic as ProspectList
       if (!p.lastContactDate || !settings) return false;
       
       const lastContact = new Date(p.lastContactDate);
       const now = new Date();
       const daysSinceLastContact = Math.floor((now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Active means contacted recently and doesn't need immediate follow-up
-      return daysSinceLastContact < settings.standardFollowUpDays;
+      // Active means contacted recently and doesn't need follow-up yet
+      return daysSinceLastContact < (settings.standardFollowUpDays - 1);
     })?.length || 0,
     completedFollowUps: followUps?.filter((f: any) => f.completed)?.length || 0
   };
