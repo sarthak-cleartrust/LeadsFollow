@@ -518,6 +518,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/follow-ups/:id", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log("=== FOLLOW-UP UPDATE DEBUG ===");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
       const id = parseInt(req.params.id);
       const followUp = await storage.getFollowUp(id);
       
@@ -533,16 +536,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Process the update data to handle dates properly
       const updateData = { ...req.body };
+      console.log("Original updateData:", updateData);
+      
       if (updateData.dueDate) {
+        console.log("Processing dueDate:", updateData.dueDate, typeof updateData.dueDate);
         updateData.dueDate = new Date(updateData.dueDate);
+        console.log("Converted dueDate:", updateData.dueDate);
       }
       if (updateData.completedDate) {
+        console.log("Processing completedDate:", updateData.completedDate, typeof updateData.completedDate);
         updateData.completedDate = new Date(updateData.completedDate);
+        console.log("Converted completedDate:", updateData.completedDate);
       }
+      
+      console.log("Final updateData before storage:", updateData);
       
       const updatedFollowUp = await storage.updateFollowUp(id, updateData);
       res.json(updatedFollowUp);
     } catch (err: any) {
+      console.log("=== UPDATE ERROR ===");
+      console.log("Error:", err);
+      console.log("Error message:", err.message);
+      console.log("Error stack:", err.stack);
       res.status(400).json({ message: err.message });
     }
   });
