@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, Cog, ChevronDown, LogOut, User, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,24 @@ export default function Header() {
   const [isDark, setIsDark] = useState(() => 
     document.documentElement.classList.contains('dark')
   );
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   // Query pending follow-ups for notification count
   const { data: followUps } = useQuery({
@@ -53,7 +71,7 @@ export default function Header() {
         
         <div className="flex items-center space-x-4">
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
