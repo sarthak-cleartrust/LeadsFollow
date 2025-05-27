@@ -154,7 +154,7 @@ export default function FollowUps() {
       
       updateFollowUpMutation.mutate({
         id: draggedItem.id,
-        data: { dueDate: newDueDate.toISOString() }
+        data: { dueDate: newDueDate.toISOString().split('T')[0] }
       });
     }
     
@@ -217,7 +217,7 @@ export default function FollowUps() {
         onDragStart={(e) => handleDragStart(e, followUp)}
         className="cursor-move hover:shadow-md transition-shadow duration-200 bg-white dark:bg-card"
       >
-        <CardContent className="p-4">
+        <CardContent className="p-3">
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center space-x-2">
               {getTypeIcon(followUp.type)}
@@ -270,7 +270,7 @@ export default function FollowUps() {
       <div
         key={status}
         className={cn(
-          "flex-1 min-w-80 rounded-lg border-2 border-dashed p-4",
+          "flex-1 min-w-60 max-w-64 rounded-lg border-2 border-dashed p-3",
           config.borderColor,
           config.bgColor
         )}
@@ -287,7 +287,7 @@ export default function FollowUps() {
           </div>
         </div>
         
-        <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="space-y-2 max-h-80 overflow-y-auto">
           {followUps.map(renderFollowUpCard)}
           
           {followUps.length === 0 && (
