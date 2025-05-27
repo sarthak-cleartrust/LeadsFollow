@@ -37,7 +37,7 @@ export default function Dashboard() {
     }
   });
   
-  // Calculate stats
+  // Calculate stats with dynamic prospect status
   const stats = {
     totalProspects: prospects?.length || 0,
     pendingFollowUps: followUps?.filter((f: any) => !f.completed)?.length || 0,
@@ -48,7 +48,17 @@ export default function Dashboard() {
       today.setHours(0, 0, 0, 0);
       return dueDate < today;
     })?.length || 0,
-    activeProspects: prospects?.filter((p: any) => p.status === 'active')?.length || 0,
+    activeProspects: prospects?.filter((p: any) => {
+      // Use same logic as ProspectList to determine if prospect is truly "active"
+      if (!p.lastContactDate || !settings) return false;
+      
+      const lastContact = new Date(p.lastContactDate);
+      const now = new Date();
+      const daysSinceLastContact = Math.floor((now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Active means contacted recently and doesn't need immediate follow-up
+      return daysSinceLastContact < settings.standardFollowUpDays;
+    })?.length || 0,
     completedFollowUps: followUps?.filter((f: any) => f.completed)?.length || 0
   };
   
