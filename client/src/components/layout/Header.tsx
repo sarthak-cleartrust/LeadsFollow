@@ -50,7 +50,9 @@ export default function Header() {
     staleTime: 60 * 1000, // 1 minute
   });
 
-  const notificationCount = followUps?.length || 0;
+  // Only count pending follow-ups (not completed ones)
+  const pendingFollowUps = Array.isArray(followUps) ? followUps.filter((f: any) => !f.completed) : [];
+  const notificationCount = pendingFollowUps.length;
 
   // Get user initials for avatar
   const getInitials = (name: string) => {
@@ -101,8 +103,8 @@ export default function Header() {
                   <h3 className="font-semibold text-sm">Notifications</h3>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
-                  {followUps && followUps.length > 0 ? (
-                    followUps.map((followUp: any) => (
+                  {pendingFollowUps && pendingFollowUps.length > 0 ? (
+                    pendingFollowUps.map((followUp: any) => (
                       <div key={followUp.id} className="p-3 border-b border-neutral-100 dark:border-border hover:bg-neutral-50 dark:hover:bg-muted">
                         <div className="text-sm font-medium">Follow-up due</div>
                         <div className="text-xs text-neutral-500 mt-1">

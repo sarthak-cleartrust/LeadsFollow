@@ -25,6 +25,15 @@ export async function checkFollowUpNeeds(userId: number): Promise<NotificationAl
   const now = new Date();
   
   for (const prospect of prospects) {
+    // Check if there are any pending follow-ups for this prospect
+    const existingFollowUps = await storage.getFollowUpsByProspect(prospect.id);
+    const hasPendingFollowUp = existingFollowUps.some(f => !f.completed);
+    
+    // Skip if there's already a pending follow-up
+    if (hasPendingFollowUp) {
+      continue;
+    }
+    
     if (!prospect.lastContactDate) {
       // New prospect with no contact yet
       alerts.push({

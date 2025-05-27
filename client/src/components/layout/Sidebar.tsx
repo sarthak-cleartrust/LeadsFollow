@@ -32,7 +32,9 @@ export default function Sidebar() {
   });
   
   const prospectCount = prospects?.length || 0;
-  const followUpCount = followUps?.length || 0;
+  // Only count pending follow-ups (not completed ones)
+  const pendingFollowUps = Array.isArray(followUps) ? followUps.filter((f: any) => !f.completed) : [];
+  const followUpCount = pendingFollowUps.length;
   
   // Navigation items
   const navItems = [
