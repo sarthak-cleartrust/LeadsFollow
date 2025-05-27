@@ -60,7 +60,7 @@ export default function EmailThread({ emails, isLoading }: EmailThreadProps) {
   }
   
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-2 sm:p-4 space-y-2 sm:space-y-4 max-w-full overflow-hidden">
       {sortedEmails.map(email => (
         <EmailItem key={email.id} email={email} />
       ))}
