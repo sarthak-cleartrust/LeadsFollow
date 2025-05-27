@@ -90,9 +90,20 @@ export default function FollowUps() {
       completed: [] as any[]
     };
 
+    console.log("=== CATEGORIZING FOLLOW-UPS ===");
+    console.log("Raw followUps data:", followUps);
+
     (followUps as any[]).forEach((followUp: any) => {
       const status = getFollowUpStatus(followUp);
+      console.log(`Follow-up ${followUp.id}: completed=${followUp.completed}, status=${status}`);
       categories[status].push(followUp);
+    });
+
+    console.log("Categories result:", {
+      overdue: categories.overdue.length,
+      today: categories.today.length,
+      upcoming: categories.upcoming.length,
+      completed: categories.completed.length
     });
 
     return categories;
