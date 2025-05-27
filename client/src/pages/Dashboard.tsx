@@ -81,7 +81,7 @@ export default function Dashboard() {
       )}
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-neutral-500">Total Prospects</CardTitle>
@@ -104,6 +104,19 @@ export default function Dashboard() {
             <div className="flex items-center text-xs text-neutral-500">
               <Calendar className="h-4 w-4 mr-1 text-primary" />
               <span>Scheduled follow-ups</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-neutral-500">Needs Follow-up</CardTitle>
+            <div className="text-2xl font-bold text-orange-500">{stats.overdueFollowUps}</div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-xs text-neutral-500">
+              <Clock className="h-4 w-4 mr-1 text-orange-500" />
+              <span>Overdue communications</span>
             </div>
           </CardContent>
         </Card>
