@@ -531,7 +531,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
       
-      const updatedFollowUp = await storage.updateFollowUp(id, req.body);
+      // Process the update data to handle dates properly
+      const updateData = { ...req.body };
+      if (updateData.dueDate) {
+        updateData.dueDate = new Date(updateData.dueDate);
+      }
+      if (updateData.completedDate) {
+        updateData.completedDate = new Date(updateData.completedDate);
+      }
+      
+      const updatedFollowUp = await storage.updateFollowUp(id, updateData);
       res.json(updatedFollowUp);
     } catch (err: any) {
       res.status(400).json({ message: err.message });
