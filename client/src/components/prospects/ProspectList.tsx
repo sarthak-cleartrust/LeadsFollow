@@ -156,7 +156,7 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
         
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm font-medium text-foreground">
-            {prospectCounts.all} Active Prospects
+            {prospectCounts.all} Total Prospects
           </div>
           <Button 
             size="sm" 
