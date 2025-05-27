@@ -54,6 +54,19 @@ export function useAuth() {
         
         const data = await res.json();
         setIsAuthenticated(true);
+        
+        // Trigger Gmail sync on app refresh/load if user has Gmail connected
+        if (data.gmailConnected) {
+          fetch("/api/gmail/sync", { method: "GET" })
+            .then(res => res.json())
+            .then(() => {
+              // Refresh data after sync
+              queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+            })
+            .catch(err => console.log("Background sync failed:", err));
+        }
+        
         return data;
       } catch (error) {
         setIsAuthenticated(false);
@@ -72,6 +85,18 @@ export function useAuth() {
       setIsAuthenticated(true);
       queryClient.setQueryData(["/api/auth/user"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Trigger Gmail sync if user has Gmail connected
+      if (data.gmailConnected) {
+        fetch("/api/gmail/sync", { method: "GET" })
+          .then(res => res.json())
+          .then(() => {
+            // Refresh data after sync
+            queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+          })
+          .catch(err => console.log("Background sync failed:", err));
+      }
       
       toast({
         title: "Login successful",
