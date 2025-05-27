@@ -430,33 +430,46 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateFollowUp(id: number, data: Partial<FollowUp>): Promise<FollowUp | undefined> {
-    console.log("=== DATABASE STORAGE UPDATE ===");
-    console.log("Update data received:", JSON.stringify(data, null, 2));
-    console.log("Data types:", Object.keys(data).map(key => `${key}: ${typeof data[key as keyof typeof data]}`));
-    
-    // Convert string dates to Date objects before passing to Drizzle
-    const processedData = { ...data };
-    
-    if (processedData.dueDate) {
-      if (typeof processedData.dueDate === 'string') {
-        processedData.dueDate = new Date(processedData.dueDate);
+    try {
+      console.log("=== DATABASE STORAGE UPDATE ===");
+      console.log("Update data received:", JSON.stringify(data, null, 2));
+      console.log("Data types:", Object.keys(data).map(key => `${key}: ${typeof data[key as keyof typeof data]}`));
+      
+      // Convert string dates to Date objects before passing to Drizzle
+      const processedData = { ...data };
+      
+      if (processedData.dueDate) {
+        if (typeof processedData.dueDate === 'string') {
+          console.log("Converting dueDate string to Date:", processedData.dueDate);
+          processedData.dueDate = new Date(processedData.dueDate);
+        }
       }
-    }
-    
-    if (processedData.completedDate) {
-      if (typeof processedData.completedDate === 'string') {
-        processedData.completedDate = new Date(processedData.completedDate);
+      
+      if (processedData.completedDate) {
+        if (typeof processedData.completedDate === 'string') {
+          console.log("Converting completedDate string to Date:", processedData.completedDate);
+          processedData.completedDate = new Date(processedData.completedDate);
+        }
       }
+      
+      console.log("Processed data before DB:", processedData);
+      console.log("About to call Drizzle update...");
+      
+      const [updatedFollowUp] = await db
+        .update(followUps)
+        .set(processedData)
+        .where(eq(followUps.id, id))
+        .returning();
+        
+      console.log("Drizzle update successful!");
+      return updatedFollowUp;
+    } catch (error) {
+      console.log("=== STORAGE ERROR CAUGHT ===");
+      console.log("Error:", error);
+      console.log("Error message:", (error as Error).message);
+      console.log("Error stack:", (error as Error).stack);
+      throw error;
     }
-    
-    console.log("Processed data before DB:", processedData);
-    
-    const [updatedFollowUp] = await db
-      .update(followUps)
-      .set(processedData)
-      .where(eq(followUps.id, id))
-      .returning();
-    return updatedFollowUp;
   }
 
   async deleteFollowUp(id: number): Promise<boolean> {
