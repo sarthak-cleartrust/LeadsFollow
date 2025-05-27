@@ -75,6 +75,47 @@ export default function Header() {
               </TooltipTrigger>
               <TooltipContent>Notifications</TooltipContent>
             </Tooltip>
+            
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <div className="absolute right-0 top-12 w-80 bg-white dark:bg-card border border-neutral-300 dark:border-border rounded-lg shadow-lg z-50">
+                <div className="p-4 border-b border-neutral-200 dark:border-border">
+                  <h3 className="font-semibold text-sm">Notifications</h3>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {followUps && followUps.length > 0 ? (
+                    followUps.map((followUp: any) => (
+                      <div key={followUp.id} className="p-3 border-b border-neutral-100 dark:border-border hover:bg-neutral-50 dark:hover:bg-muted">
+                        <div className="text-sm font-medium">Follow-up due</div>
+                        <div className="text-xs text-neutral-500 mt-1">
+                          {followUp.type} follow-up for prospect
+                        </div>
+                        <div className="text-xs text-neutral-400 mt-1">
+                          Due: {new Date(followUp.dueDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-neutral-500 text-sm">
+                      No pending notifications
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 border-t border-neutral-200 dark:border-border">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-primary"
+                    onClick={() => {
+                      setShowNotifications(false);
+                      window.location.href = "/follow-ups";
+                    }}
+                  >
+                    View all follow-ups
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Theme Toggle */}
