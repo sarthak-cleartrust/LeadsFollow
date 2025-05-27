@@ -18,6 +18,7 @@ export default function FollowUps() {
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
   const [draggedItem, setDraggedItem] = useState<any>(null);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Query for follow-ups
   const { data: followUps = [], isLoading: isLoadingFollowUps } = useQuery({
@@ -71,6 +72,9 @@ export default function FollowUps() {
           followUp.id === id ? { ...followUp, ...data } : followUp
         );
       });
+
+      // Force a re-render to update the categorized view
+      setForceUpdate(prev => prev + 1);
 
       // Return a context object with the snapshotted value
       return { previousFollowUps };
@@ -145,7 +149,7 @@ export default function FollowUps() {
     });
 
     return categories;
-  }, [followUps]);
+  }, [followUps, forceUpdate]);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, followUp: any) => {
