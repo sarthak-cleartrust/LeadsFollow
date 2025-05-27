@@ -292,7 +292,7 @@ export default function FollowUps() {
       <div
         key={status}
         className={cn(
-          "w-full lg:flex-1 lg:min-w-60 lg:max-w-64 rounded-lg border-2 border-dashed p-3 mb-4 lg:mb-0",
+          "rounded-lg border-2 border-dashed p-3",
           config.borderColor,
           config.bgColor
         )}
@@ -324,12 +324,12 @@ export default function FollowUps() {
 
   if (isLoadingFollowUps) {
     return (
-      <div className="p-4 md:p-6 h-full overflow-y-auto">
+      <div className="p-6 h-full overflow-y-auto">
         <div className="animate-pulse">
-          <div className="h-6 md:h-8 bg-neutral-200 dark:bg-neutral-700 rounded w-32 md:w-48 mb-6"></div>
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          <div className="h-8 bg-neutral-200 dark:bg-neutral-700 rounded w-48 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="w-full lg:flex-1 h-48 lg:h-64 bg-neutral-200 dark:bg-neutral-700 rounded-lg"></div>
+              <div key={i} className="h-64 bg-neutral-200 dark:bg-neutral-700 rounded-lg"></div>
             ))}
           </div>
         </div>
@@ -338,16 +338,14 @@ export default function FollowUps() {
   }
 
   return (
-    <div className="p-4 md:p-6 h-full overflow-y-auto">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Follow-ups</h1>
-          <p className="text-muted-foreground text-sm md:text-base">Manage your prospect follow-ups with drag and drop</p>
-        </div>
+    <div className="p-6 h-full overflow-y-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">Follow-ups</h1>
+        <p className="text-muted-foreground">Manage your prospect follow-ups with drag and drop</p>
       </div>
 
-      {/* Mobile: Stack columns vertically, Desktop: Horizontal scrolling */}
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 lg:overflow-x-auto lg:pb-4">
+      {/* Responsive grid layout like Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {renderColumn('overdue', categorizedFollowUps.overdue)}
         {renderColumn('today', categorizedFollowUps.today)}
         {renderColumn('upcoming', categorizedFollowUps.upcoming)}
