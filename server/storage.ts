@@ -436,6 +436,10 @@ export class DatabaseStorage implements IStorage {
       .where(inArray(followUps.prospectId, prospectIds))
       .orderBy(followUps.dueDate);
 
+    console.log("=== DATABASE QUERY RESULT ===");
+    console.log("Raw followUps from DB:", followUpsList);
+    console.log("Count:", followUpsList.length);
+
     return followUpsList.map(followUp => {
       const prospect = userProspects.find(p => p.id === followUp.prospectId)!;
       return { ...followUp, prospect };
