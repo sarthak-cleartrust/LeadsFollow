@@ -539,7 +539,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Only copy the fields we want to update
       if (req.body.dueDate !== undefined) {
-        updateData.dueDate = new Date(req.body.dueDate);
+        console.log("dueDate from request:", req.body.dueDate);
+        console.log("dueDate type:", typeof req.body.dueDate);
+        
+        // Handle both string and Date object inputs
+        if (req.body.dueDate instanceof Date) {
+          updateData.dueDate = req.body.dueDate;
+        } else {
+          updateData.dueDate = new Date(req.body.dueDate);
+        }
+        
+        console.log("Processed dueDate:", updateData.dueDate);
       }
       if (req.body.completed !== undefined) {
         updateData.completed = req.body.completed;
