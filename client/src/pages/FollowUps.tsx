@@ -18,7 +18,7 @@ export default function FollowUps() {
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
   const [draggedItem, setDraggedItem] = useState<any>(null);
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [optimisticFollowUps, setOptimisticFollowUps] = useState<any[]>([]);
 
   // Query for follow-ups
   const { data: followUps = [], isLoading: isLoadingFollowUps } = useQuery({
@@ -73,8 +73,13 @@ export default function FollowUps() {
         );
       });
 
-      // Force a re-render to update the categorized view
-      setForceUpdate(prev => prev + 1);
+      // Update optimistic state immediately
+      setOptimisticFollowUps((old: any) => {
+        if (!old) return old;
+        return old.map((followUp: any) => 
+          followUp.id === id ? { ...followUp, ...data } : followUp
+        );
+      });
 
       // Return a context object with the snapshotted value
       return { previousFollowUps };
@@ -127,15 +132,17 @@ export default function FollowUps() {
       completed: [] as any[]
     };
 
-    if (!followUps || !Array.isArray(followUps)) {
+    const dataToUse = optimisticFollowUps.length > 0 ? optimisticFollowUps : followUps;
+    
+    if (!dataToUse || !Array.isArray(dataToUse)) {
       return categories;
     }
 
     console.log("=== CATEGORIZING FOLLOW-UPS ===");
-    console.log("Raw followUps data:", followUps);
-    console.log("Follow-up IDs:", followUps.map((f: any) => f.id));
+    console.log("Raw followUps data:", dataToUse);
+    console.log("Follow-up IDs:", dataToUse.map((f: any) => f.id));
 
-    (followUps as any[]).forEach((followUp: any) => {
+    (dataToUse as any[]).forEach((followUp: any) => {
       const status = getFollowUpStatus(followUp);
       console.log(`Follow-up ${followUp.id}: completed=${followUp.completed}, status=${status}`);
       categories[status].push(followUp);
@@ -149,7 +156,7 @@ export default function FollowUps() {
     });
 
     return categories;
-  }, [followUps, forceUpdate]);
+  }, [followUps, optimisticFollowUps]);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, followUp: any) => {
