@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { formatRelativeTime } from "@/lib/gmail";
 import { apiRequest } from "@/lib/queryClient";
@@ -58,10 +58,19 @@ export default function FollowUps() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate and refetch the follow-ups data
       queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      queryClient.refetchQueries({ queryKey: ["/api/follow-ups"] });
       toast({
         title: "Follow-up updated",
         description: "Follow-up has been moved successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to move follow-up",
+        variant: "destructive",
       });
     },
   });
@@ -82,13 +91,18 @@ export default function FollowUps() {
     return 'upcoming';
   };
 
-  const categorizeFollowUps = () => {
+  // Use useMemo to recalculate categories whenever followUps data changes
+  const categorizedFollowUps = useMemo(() => {
     const categories = {
       overdue: [] as any[],
       today: [] as any[],
       upcoming: [] as any[],
       completed: [] as any[]
     };
+
+    if (!followUps || !Array.isArray(followUps)) {
+      return categories;
+    }
 
     console.log("=== CATEGORIZING FOLLOW-UPS ===");
     console.log("Raw followUps data:", followUps);
@@ -108,9 +122,7 @@ export default function FollowUps() {
     });
 
     return categories;
-  };
-
-  const categorizedFollowUps = categorizeFollowUps();
+  }, [followUps]);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, followUp: any) => {
