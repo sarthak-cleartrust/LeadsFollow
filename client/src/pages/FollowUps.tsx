@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { formatRelativeTime } from "@/lib/gmail";
 import { apiRequest } from "@/lib/queryClient";
@@ -28,7 +28,7 @@ export default function FollowUps() {
 
   // Initialize optimistic state with actual data
   useEffect(() => {
-    if (followUps.length > 0) {
+    if (followUps && Array.isArray(followUps) && followUps.length > 0) {
       setOptimisticFollowUps(followUps);
     }
   }, [followUps]);
