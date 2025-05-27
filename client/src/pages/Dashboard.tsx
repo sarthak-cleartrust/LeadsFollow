@@ -48,7 +48,8 @@ export default function Dashboard() {
       today.setHours(0, 0, 0, 0);
       return dueDate < today;
     })?.length || 0,
-    activeProspects: prospects?.filter((p: any) => p.status === 'active')?.length || 0
+    activeProspects: prospects?.filter((p: any) => p.status === 'active')?.length || 0,
+    completedFollowUps: followUps?.filter((f: any) => f.completed)?.length || 0
   };
   
   return (
@@ -109,13 +110,13 @@ export default function Dashboard() {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-neutral-500">Needs Follow-up</CardTitle>
-            <div className="text-2xl font-bold text-orange-500">{stats.overdueFollowUps}</div>
+            <CardTitle className="text-sm font-medium text-neutral-500">Completed Follow-ups</CardTitle>
+            <div className="text-2xl font-bold text-green-500">{stats.completedFollowUps}</div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center text-xs text-neutral-500">
-              <Clock className="h-4 w-4 mr-1 text-orange-500" />
-              <span>Overdue communications</span>
+              <BarChart className="h-4 w-4 mr-1 text-green-500" />
+              <span>Successfully completed</span>
             </div>
           </CardContent>
         </Card>
@@ -123,11 +124,11 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-neutral-500">Active Prospects</CardTitle>
-            <div className="text-2xl font-bold text-green-500">{stats.activeProspects}</div>
+            <div className="text-2xl font-bold text-blue-500">{stats.activeProspects}</div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center text-xs text-neutral-500">
-              <BarChart className="h-4 w-4 mr-1 text-green-500" />
+              <Users className="h-4 w-4 mr-1 text-blue-500" />
               <span>Recently contacted</span>
             </div>
           </CardContent>
