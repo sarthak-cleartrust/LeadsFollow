@@ -4,578 +4,343 @@ import { formatRelativeTime } from "@/lib/gmail";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, Check, AlertTriangle, Search, Mail, Phone, Video } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Clock, Check, AlertTriangle, Mail, Phone, Video } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import FollowUpModal from "@/components/modals/FollowUpModal";
 
+type FollowUpStatus = 'overdue' | 'today' | 'upcoming' | 'completed';
+
 export default function FollowUps() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<any>(null);
-  
+  const [draggedItem, setDraggedItem] = useState<any>(null);
+
   // Query for follow-ups
-  const { data: followUps, isLoading: isLoadingFollowUps } = useQuery({
+  const { data: followUps = [], isLoading: isLoadingFollowUps } = useQuery({
     queryKey: ["/api/follow-ups"],
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
   });
-  
-  // Query for prospects that need follow-up but don't have a scheduled task
-  const { data: prospects, isLoading: isLoadingProspects } = useQuery({
-    queryKey: ["/api/prospects"],
-    staleTime: 60 * 1000, // 1 minute
-  });
-  
-  // Query for follow-up settings
-  const { data: settings, isLoading: isLoadingSettings } = useQuery({
-    queryKey: ["/api/follow-up-settings"],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-  
-  // Mutation to mark follow-up as complete
-  const completeFollowUp = useMutation({
-    mutationFn: async (followUpId: number) => {
-      const res = await apiRequest(
-        "PUT", 
-        `/api/follow-ups/${followUpId}`, 
-        { completed: true, completedDate: new Date().toISOString() }
-      );
+
+  // Complete follow-up mutation
+  const completeFollowUpMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
+      const res = await apiRequest("PUT", `/api/follow-ups/${id}`, {
+        completed,
+        completedDate: completed ? new Date().toISOString() : null,
+      });
       return res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Follow-up completed",
-        description: "The follow-up has been marked as complete.",
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+      toast({
+        title: "Follow-up updated",
+        description: "Follow-up status has been updated successfully.",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to complete follow-up",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to update follow-up",
         variant: "destructive",
       });
-    }
+    },
   });
-  
-  // Handle scheduling a follow-up
-  const handleScheduleFollowUp = (prospect: any) => {
-    setSelectedProspect(prospect);
-    setShowFollowUpModal(true);
-  };
-  
-  // Filter and organize follow-ups
-  const processedFollowUps = followUps?.filter((followUp: any) => {
-    // Filter by search query
-    const matchesSearch = 
-      followUp.prospect.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      followUp.prospect.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (followUp.notes && followUp.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // Update follow-up mutation for drag and drop
+  const updateFollowUpMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await apiRequest("PUT", `/api/follow-ups/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      toast({
+        title: "Follow-up updated",
+        description: "Follow-up has been moved successfully.",
+      });
+    },
+  });
+
+  // Utility functions for categorizing follow-ups
+  const getFollowUpStatus = (followUp: any): FollowUpStatus => {
+    if (followUp.completed) return 'completed';
     
-    // Filter by tab
-    const now = new Date();
+    const today = new Date();
     const dueDate = new Date(followUp.dueDate);
-    const isOverdue = dueDate < now && !followUp.completed;
-    const isDueToday = 
-      dueDate.getDate() === now.getDate() && 
-      dueDate.getMonth() === now.getMonth() && 
-      dueDate.getFullYear() === now.getFullYear() && 
-      !followUp.completed;
-    const isUpcoming = dueDate > now && !followUp.completed;
-    const isCompleted = followUp.completed;
     
-    let matchesTab = true;
-    if (activeTab === "overdue") matchesTab = isOverdue;
-    if (activeTab === "today") matchesTab = isDueToday;
-    if (activeTab === "upcoming") matchesTab = isUpcoming;
-    if (activeTab === "completed") matchesTab = isCompleted;
+    // Reset time to compare just dates
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
     
-    return matchesSearch && matchesTab;
-  })?.sort((a: any, b: any) => {
-    // Sort by last contact date (ascending - oldest contact first)
-    const aLastContact = a.prospect.lastContactDate ? new Date(a.prospect.lastContactDate) : new Date(0);
-    const bLastContact = b.prospect.lastContactDate ? new Date(b.prospect.lastContactDate) : new Date(0);
-    
-    return aLastContact.getTime() - bLastContact.getTime();
-  });
-  
-  // Get prospects that need follow-up but don't have scheduled tasks
-  const prospectsNeedingFollowUp = prospects?.filter((prospect: any) => {
-    if (!prospect.lastContactDate || !settings) return false;
-    
-    const lastContact = new Date(prospect.lastContactDate);
-    const now = new Date();
-    const daysSinceLastContact = Math.floor((now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Check if this prospect already has a pending follow-up
-    const hasFollowUp = followUps?.some((followUp: any) => 
-      followUp.prospectId === prospect.id && !followUp.completed
-    );
-    
-    return daysSinceLastContact >= settings.standardFollowUpDays && !hasFollowUp;
-  });
-  
-  // Count items for each tab
-  const counts = {
-    all: followUps?.filter((f: any) => !f.completed)?.length || 0,
-    overdue: followUps?.filter((f: any) => {
-      const dueDate = new Date(f.dueDate);
-      return dueDate < new Date() && !f.completed;
-    })?.length || 0,
-    today: followUps?.filter((f: any) => {
-      const dueDate = new Date(f.dueDate);
-      const now = new Date();
-      return dueDate.getDate() === now.getDate() && 
-             dueDate.getMonth() === now.getMonth() && 
-             dueDate.getFullYear() === now.getFullYear() && 
-             !f.completed;
-    })?.length || 0,
-    upcoming: followUps?.filter((f: any) => {
-      const dueDate = new Date(f.dueDate);
-      return dueDate > new Date() && !f.completed;
-    })?.length || 0,
-    completed: followUps?.filter((f: any) => f.completed)?.length || 0
+    if (dueDate < today) return 'overdue';
+    if (dueDate.getTime() === today.getTime()) return 'today';
+    return 'upcoming';
   };
-  
-  // Loading state
-  if (isLoadingFollowUps || isLoadingProspects || isLoadingSettings) {
+
+  const categorizeFollowUps = () => {
+    const categories = {
+      overdue: [] as any[],
+      today: [] as any[],
+      upcoming: [] as any[],
+      completed: [] as any[]
+    };
+
+    (followUps as any[]).forEach((followUp: any) => {
+      const status = getFollowUpStatus(followUp);
+      categories[status].push(followUp);
+    });
+
+    return categories;
+  };
+
+  const categorizedFollowUps = categorizeFollowUps();
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, followUp: any) => {
+    setDraggedItem(followUp);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetStatus: FollowUpStatus) => {
+    e.preventDefault();
+    
+    if (!draggedItem) return;
+    
+    const currentStatus = getFollowUpStatus(draggedItem);
+    if (currentStatus === targetStatus) return;
+
+    // Handle moving to completed
+    if (targetStatus === 'completed') {
+      completeFollowUpMutation.mutate({
+        id: draggedItem.id,
+        completed: true
+      });
+    }
+    // Handle moving from completed to other statuses
+    else if (currentStatus === 'completed') {
+      completeFollowUpMutation.mutate({
+        id: draggedItem.id,
+        completed: false
+      });
+    }
+    // Handle date changes for overdue/today/upcoming
+    else {
+      const today = new Date();
+      let newDueDate: Date;
+      
+      switch (targetStatus) {
+        case 'overdue':
+          newDueDate = new Date(today.getTime() - 24 * 60 * 60 * 1000); // Yesterday
+          break;
+        case 'today':
+          newDueDate = today;
+          break;
+        case 'upcoming':
+          newDueDate = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
+          break;
+        default:
+          return;
+      }
+      
+      updateFollowUpMutation.mutate({
+        id: draggedItem.id,
+        data: { dueDate: newDueDate.toISOString() }
+      });
+    }
+    
+    setDraggedItem(null);
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "email": return <Mail className="w-4 h-4" />;
+      case "phone": return <Phone className="w-4 h-4" />;
+      case "meeting": return <Video className="w-4 h-4" />;
+      default: return <Calendar className="w-4 h-4" />;
+    }
+  };
+
+  const getColumnConfig = (status: FollowUpStatus) => {
+    switch (status) {
+      case 'overdue':
+        return {
+          title: 'Overdue',
+          icon: <AlertTriangle className="w-5 h-5 text-red-500" />,
+          bgColor: 'bg-red-50 dark:bg-red-900/10',
+          borderColor: 'border-red-200 dark:border-red-800',
+          badgeColor: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+        };
+      case 'today':
+        return {
+          title: 'Today',
+          icon: <Clock className="w-5 h-5 text-orange-500" />,
+          bgColor: 'bg-orange-50 dark:bg-orange-900/10',
+          borderColor: 'border-orange-200 dark:border-orange-800',
+          badgeColor: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+        };
+      case 'upcoming':
+        return {
+          title: 'Upcoming',
+          icon: <Calendar className="w-5 h-5 text-blue-500" />,
+          bgColor: 'bg-blue-50 dark:bg-blue-900/10',
+          borderColor: 'border-blue-200 dark:border-blue-800',
+          badgeColor: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+        };
+      case 'completed':
+        return {
+          title: 'Completed',
+          icon: <Check className="w-5 h-5 text-green-500" />,
+          bgColor: 'bg-green-50 dark:bg-green-900/10',
+          borderColor: 'border-green-200 dark:border-green-800',
+          badgeColor: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+        };
+    }
+  };
+
+  const renderFollowUpCard = (followUp: any) => {
+    const prospect = followUp.prospect;
+    
     return (
-      <div className="p-6 bg-neutral-200 dark:bg-background h-full overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-6">Follow-ups</h1>
-        <div className="animate-pulse space-y-4">
-          <div className="h-10 bg-neutral-300 dark:bg-neutral-700 rounded w-full mb-4"></div>
+      <Card
+        key={followUp.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, followUp)}
+        className="cursor-move hover:shadow-md transition-shadow duration-200 bg-white dark:bg-card"
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              {getTypeIcon(followUp.type)}
+              <span className="text-sm font-medium capitalize">{followUp.type}</span>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {new Date(followUp.dueDate).toLocaleDateString()}
+            </Badge>
+          </div>
           
-          <div className="h-12 bg-neutral-300 dark:bg-neutral-700 rounded w-full mb-6"></div>
+          <div className="mb-2">
+            <p className="font-medium text-sm">{prospect?.name || 'Unknown Prospect'}</p>
+            <p className="text-xs text-muted-foreground">{prospect?.email}</p>
+          </div>
           
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="mb-4">
-              <CardHeader className="pb-2">
-                <div className="h-5 bg-neutral-300 dark:bg-neutral-700 rounded w-1/3"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-20 bg-neutral-300 dark:bg-neutral-700 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
+          {followUp.notes && (
+            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+              {followUp.notes}
+            </p>
+          )}
+          
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-muted-foreground">
+              Due {formatRelativeTime(followUp.dueDate)}
+            </span>
+            
+            {!followUp.completed && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => completeFollowUpMutation.mutate({
+                  id: followUp.id,
+                  completed: true
+                })}
+                className="h-6 px-2"
+              >
+                <Check className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderColumn = (status: FollowUpStatus, followUps: any[]) => {
+    const config = getColumnConfig(status);
+    
+    return (
+      <div
+        key={status}
+        className={cn(
+          "flex-1 min-w-80 rounded-lg border-2 border-dashed p-4",
+          config.borderColor,
+          config.bgColor
+        )}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, status)}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            {config.icon}
+            <h3 className="font-semibold">{config.title}</h3>
+            <Badge className={cn("text-xs", config.badgeColor)}>
+              {followUps.length}
+            </Badge>
+          </div>
+        </div>
+        
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {followUps.map(renderFollowUpCard)}
+          
+          {followUps.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <p className="text-sm">No {status} follow-ups</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (isLoadingFollowUps) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-neutral-200 rounded w-48 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-64 bg-neutral-200 rounded"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
-  
+
   return (
-    <div className="p-6 bg-neutral-200 dark:bg-background h-full overflow-y-auto">
+    <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Follow-ups</h1>
-      </div>
-      
-      <div className="mb-6">
-        <div className="relative">
-          <Input
-            type="text"
-            placeholder="Search follow-ups by prospect name or notes..."
-            className="w-full pl-9 pr-4 py-2"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
+        <div>
+          <h1 className="text-3xl font-bold">Follow-ups</h1>
+          <p className="text-muted-foreground">Manage your prospect follow-ups with drag and drop</p>
         </div>
       </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">
-            All
-            <Badge className="ml-2" variant="secondary">{counts.all}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="overdue">
-            Overdue
-            <Badge className="ml-2 bg-alert text-white">{counts.overdue}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="today">
-            Today
-            <Badge className="ml-2 bg-orange-400 text-white">{counts.today}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="upcoming">
-            Upcoming
-            <Badge className="ml-2 bg-secondary text-white">{counts.upcoming}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed
-            <Badge className="ml-2" variant="outline">{counts.completed}</Badge>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-      
-      {/* Prospects needing follow-up but don't have scheduled tasks */}
-      {prospectsNeedingFollowUp && prospectsNeedingFollowUp.length > 0 && activeTab !== "completed" && (
-        <Card className="mb-6 border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-950/30">
-          <CardHeader>
-            <CardTitle className="flex items-center text-lg">
-              <AlertTriangle className="h-5 w-5 mr-2 text-alert" />
-              Prospects Needing Follow-up
-            </CardTitle>
-            <CardDescription>
-              These prospects need follow-up based on your settings but don't have scheduled tasks yet.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {prospectsNeedingFollowUp.map((prospect: any) => {
-                const lastContact = new Date(prospect.lastContactDate);
-                const now = new Date();
-                const daysSinceLastContact = Math.floor((now.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
-                
-                return (
-                  <div 
-                    key={prospect.id} 
-                    className="p-3 border border-neutral-300 dark:border-neutral-700 rounded-md"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-medium mb-1">{prospect.name}</div>
-                        <div className="text-xs text-neutral-500 flex items-center mb-1">
-                          <Clock className="h-3 w-3 mr-1" />
-                          <span>Last contact: {formatRelativeTime(prospect.lastContactDate)}</span>
-                          <Badge className="ml-2 bg-alert text-white text-xs">
-                            {daysSinceLastContact} days overdue
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-neutral-600 dark:text-neutral-400">
-                          {prospect.email}
-                          {prospect.company && ` • ${prospect.company}`}
-                        </div>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className="text-xs"
-                        onClick={() => handleScheduleFollowUp(prospect)}
-                      >
-                        Schedule Follow-up
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      {/* Scheduled Follow-ups */}
-      <div className="space-y-6">
-        {activeTab === "overdue" && counts.overdue > 0 && (
-          <Card className="border-red-200 dark:border-red-900">
-            <CardHeader>
-              <CardTitle className="flex items-center text-lg text-alert">
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Overdue Follow-ups
-              </CardTitle>
-              <CardDescription>
-                These follow-ups are past their due date and require immediate attention.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {processedFollowUps?.filter((f: any) => {
-                  const dueDate = new Date(f.dueDate);
-                  return dueDate < new Date() && !f.completed;
-                }).map((followUp: any) => (
-                  <FollowUpCard 
-                    key={followUp.id} 
-                    followUp={followUp} 
-                    onComplete={() => completeFollowUp.mutate(followUp.id)} 
-                    isPending={completeFollowUp.isPending}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {activeTab === "today" && counts.today > 0 && (
-          <Card className="border-orange-200 dark:border-orange-900">
-            <CardHeader>
-              <CardTitle className="flex items-center text-lg text-orange-500">
-                <Calendar className="h-5 w-5 mr-2" />
-                Today's Follow-ups
-              </CardTitle>
-              <CardDescription>
-                These follow-ups are due today.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {processedFollowUps?.filter((f: any) => {
-                  const dueDate = new Date(f.dueDate);
-                  const now = new Date();
-                  return dueDate.getDate() === now.getDate() && 
-                        dueDate.getMonth() === now.getMonth() && 
-                        dueDate.getFullYear() === now.getFullYear() && 
-                        !f.completed;
-                }).map((followUp: any) => (
-                  <FollowUpCard 
-                    key={followUp.id} 
-                    followUp={followUp} 
-                    onComplete={() => completeFollowUp.mutate(followUp.id)} 
-                    isPending={completeFollowUp.isPending}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {activeTab === "upcoming" && counts.upcoming > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-lg">
-                <Calendar className="h-5 w-5 mr-2 text-secondary" />
-                Upcoming Follow-ups
-              </CardTitle>
-              <CardDescription>
-                These follow-ups are scheduled for the future.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {processedFollowUps?.filter((f: any) => {
-                  const dueDate = new Date(f.dueDate);
-                  return dueDate > new Date() && !f.completed;
-                }).map((followUp: any) => (
-                  <FollowUpCard 
-                    key={followUp.id} 
-                    followUp={followUp} 
-                    onComplete={() => completeFollowUp.mutate(followUp.id)} 
-                    isPending={completeFollowUp.isPending}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {activeTab === "all" && counts.all > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-lg">
-                <Calendar className="h-5 w-5 mr-2 text-primary" />
-                All Pending Follow-ups
-              </CardTitle>
-              <CardDescription>
-                All your scheduled follow-ups that haven't been completed.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {processedFollowUps?.filter((f: any) => !f.completed)
-                  .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                  .map((followUp: any) => (
-                    <FollowUpCard 
-                      key={followUp.id} 
-                      followUp={followUp} 
-                      onComplete={() => completeFollowUp.mutate(followUp.id)} 
-                      isPending={completeFollowUp.isPending}
-                    />
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {activeTab === "completed" && counts.completed > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-lg">
-                <Check className="h-5 w-5 mr-2 text-secondary" />
-                Completed Follow-ups
-              </CardTitle>
-              <CardDescription>
-                Follow-ups you've already completed.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {processedFollowUps?.filter((f: any) => f.completed)
-                  .sort((a: any, b: any) => 
-                    new Date(b.completedDate || b.dueDate).getTime() - 
-                    new Date(a.completedDate || a.dueDate).getTime()
-                  )
-                  .map((followUp: any) => (
-                    <div 
-                      key={followUp.id} 
-                      className="p-3 border border-neutral-300 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-900/30"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium mb-1">{followUp.prospect.name}</div>
-                          <div className="flex items-center mb-1">
-                            <Badge className={cn(
-                              "mr-2 text-xs",
-                              followUp.type === "email" ? "bg-blue-100 text-primary dark:bg-blue-900 dark:text-blue-100" :
-                              followUp.type === "call" ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100" :
-                              "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-100"
-                            )}>
-                              {followUp.type === "email" && "Email"}
-                              {followUp.type === "call" && "Phone Call"}
-                              {followUp.type === "meeting" && "Meeting"}
-                            </Badge>
-                            <span className="text-xs text-neutral-500">
-                              Completed: {followUp.completedDate 
-                                ? new Date(followUp.completedDate).toLocaleDateString() 
-                                : "Unknown"}
-                            </span>
-                          </div>
-                          {followUp.notes && (
-                            <div className="text-xs text-neutral-500">
-                              {followUp.notes}
-                            </div>
-                          )}
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="text-xs"
-                          onClick={() => window.location.href = `/prospects?id=${followUp.prospect.id}`}
-                        >
-                          View Prospect
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Empty state */}
-        {(!processedFollowUps || processedFollowUps.length === 0) && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Calendar className="h-12 w-12 mx-auto mb-4 text-neutral-400" />
-              <h3 className="text-lg font-medium mb-2">No follow-ups found</h3>
-              <p className="text-neutral-500 mb-4">
-                {activeTab === "all" && "You don't have any pending follow-ups. Stay on top of your prospect communications!"}
-                {activeTab === "overdue" && "Great! You don't have any overdue follow-ups."}
-                {activeTab === "today" && "You don't have any follow-ups scheduled for today."}
-                {activeTab === "upcoming" && "You don't have any upcoming follow-ups scheduled."}
-                {activeTab === "completed" && "You haven't completed any follow-ups yet."}
-              </p>
-              
-              {activeTab !== "completed" && (
-                <Button onClick={() => window.location.href = "/prospects"}>
-                  View Prospects
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+
+      <div className="flex gap-6 overflow-x-auto pb-4">
+        {renderColumn('overdue', categorizedFollowUps.overdue)}
+        {renderColumn('today', categorizedFollowUps.today)}
+        {renderColumn('upcoming', categorizedFollowUps.upcoming)}
+        {renderColumn('completed', categorizedFollowUps.completed)}
       </div>
-      
-      {/* Follow-up Modal */}
-      {selectedProspect && (
+
+      {showFollowUpModal && (
         <FollowUpModal
           isOpen={showFollowUpModal}
-          onClose={() => setShowFollowUpModal(false)}
           prospect={selectedProspect}
+          onClose={() => {
+            setShowFollowUpModal(false);
+            setSelectedProspect(null);
+          }}
         />
       )}
-    </div>
-  );
-}
-
-// Follow-up Card Component
-function FollowUpCard({ followUp, onComplete, isPending }: { 
-  followUp: any, 
-  onComplete: () => void,
-  isPending: boolean
-}) {
-  const dueDate = new Date(followUp.dueDate);
-  const now = new Date();
-  const isOverdue = dueDate < now;
-  const isToday = 
-    dueDate.getDate() === now.getDate() && 
-    dueDate.getMonth() === now.getMonth() && 
-    dueDate.getFullYear() === now.getFullYear();
-  
-  return (
-    <div 
-      className={cn(
-        "p-3 border rounded-md",
-        isOverdue 
-          ? "border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/20" 
-          : isToday 
-          ? "border-orange-300 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20" 
-          : "border-neutral-300 dark:border-neutral-700"
-      )}
-    >
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="font-medium mb-1">{followUp.prospect.name}</div>
-          <div className="flex items-center mb-1">
-            <Badge className={cn(
-              "mr-2 text-xs",
-              followUp.type === "email" ? "bg-blue-100 text-primary dark:bg-blue-900 dark:text-blue-100" :
-              followUp.type === "call" ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100" :
-              "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-100"
-            )}>
-              {followUp.type === "email" && (
-                <><Mail className="h-3 w-3 mr-1" /> Email</>
-              )}
-              {followUp.type === "call" && (
-                <><Phone className="h-3 w-3 mr-1" /> Phone Call</>
-              )}
-              {followUp.type === "meeting" && (
-                <><Video className="h-3 w-3 mr-1" /> Meeting</>
-              )}
-            </Badge>
-            <span className="text-xs text-neutral-500 flex items-center">
-              <Calendar className="h-3 w-3 mr-1" />
-              {isOverdue ? (
-                <span className="text-alert">
-                  Overdue: {dueDate.toLocaleDateString()}
-                </span>
-              ) : isToday ? (
-                <span className="text-orange-500">
-                  Due today
-                </span>
-              ) : (
-                <span>
-                  Due: {dueDate.toLocaleDateString()}
-                </span>
-              )}
-            </span>
-          </div>
-          {followUp.notes && (
-            <div className="text-xs text-neutral-600 dark:text-neutral-400">
-              {followUp.notes}
-            </div>
-          )}
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="text-xs"
-            onClick={() => window.location.href = `/prospects?id=${followUp.prospect.id}`}
-          >
-            View
-          </Button>
-          <Button 
-            size="sm" 
-            className="text-xs"
-            onClick={onComplete}
-            disabled={isPending}
-          >
-            {isPending ? "Completing..." : "Complete"}
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
