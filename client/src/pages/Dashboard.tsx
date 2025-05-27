@@ -48,11 +48,7 @@ export default function Dashboard() {
       today.setHours(0, 0, 0, 0);
       return dueDate < today;
     })?.length || 0,
-    activeProspects: prospects?.filter((p: any) => {
-      // Debug: log the prospect status
-      console.log('Prospect status:', p.status, 'for prospect:', p.name);
-      return p.status === 'active';
-    })?.length || 0,
+    activeProspects: prospects?.filter((p: any) => p.status === 'active')?.length || 0,
     completedFollowUps: followUps?.filter((f: any) => f.completed)?.length || 0
   };
   
