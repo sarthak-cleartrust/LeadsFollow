@@ -534,19 +534,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden" });
       }
       
-      // Process the update data to handle dates properly
-      const updateData = { ...req.body };
-      console.log("Original updateData:", updateData);
+      // Process the update data to handle dates properly  
+      const updateData: any = {};
       
-      if (updateData.dueDate) {
-        console.log("Processing dueDate:", updateData.dueDate, typeof updateData.dueDate);
-        updateData.dueDate = new Date(updateData.dueDate);
-        console.log("Converted dueDate:", updateData.dueDate);
+      // Only copy the fields we want to update
+      if (req.body.dueDate !== undefined) {
+        updateData.dueDate = new Date(req.body.dueDate);
       }
-      if (updateData.completedDate) {
-        console.log("Processing completedDate:", updateData.completedDate, typeof updateData.completedDate);
-        updateData.completedDate = new Date(updateData.completedDate);
-        console.log("Converted completedDate:", updateData.completedDate);
+      if (req.body.completed !== undefined) {
+        updateData.completed = req.body.completed;
+      }
+      if (req.body.completedDate !== undefined) {
+        updateData.completedDate = req.body.completedDate ? new Date(req.body.completedDate) : null;
+      }
+      if (req.body.notes !== undefined) {
+        updateData.notes = req.body.notes;
+      }
+      if (req.body.type !== undefined) {
+        updateData.type = req.body.type;
       }
       
       console.log("Final updateData before storage:", updateData);
