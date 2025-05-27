@@ -435,6 +435,8 @@ export class DatabaseStorage implements IStorage {
       console.log("Update data received:", JSON.stringify(data, null, 2));
       console.log("Data types:", Object.keys(data).map(key => `${key}: ${typeof data[key as keyof typeof data]}`));
       
+      debugger; // DEBUGGER LINE 439
+      
       // Convert string dates to Date objects before passing to Drizzle
       const processedData = { ...data };
       

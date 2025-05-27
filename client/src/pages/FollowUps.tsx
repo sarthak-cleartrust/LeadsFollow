@@ -152,9 +152,19 @@ export default function FollowUps() {
           return;
       }
       
+      console.log("=== FRONTEND PAYLOAD ===");
+      console.log("draggedItem.id:", draggedItem.id);
+      console.log("newDueDate:", newDueDate);
+      console.log("newDueDate type:", typeof newDueDate);
+      console.log("newDueDate.toISOString():", newDueDate.toISOString());
+      
+      const payload = { dueDate: newDueDate };
+      console.log("Final payload:", payload);
+      console.log("Final payload JSON:", JSON.stringify(payload));
+      
       updateFollowUpMutation.mutate({
         id: draggedItem.id,
-        data: { dueDate: newDueDate }
+        data: payload
       });
     }
     
