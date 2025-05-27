@@ -434,9 +434,26 @@ export class DatabaseStorage implements IStorage {
     console.log("Update data received:", JSON.stringify(data, null, 2));
     console.log("Data types:", Object.keys(data).map(key => `${key}: ${typeof data[key as keyof typeof data]}`));
     
+    // Convert string dates to Date objects before passing to Drizzle
+    const processedData = { ...data };
+    
+    if (processedData.dueDate) {
+      if (typeof processedData.dueDate === 'string') {
+        processedData.dueDate = new Date(processedData.dueDate);
+      }
+    }
+    
+    if (processedData.completedDate) {
+      if (typeof processedData.completedDate === 'string') {
+        processedData.completedDate = new Date(processedData.completedDate);
+      }
+    }
+    
+    console.log("Processed data before DB:", processedData);
+    
     const [updatedFollowUp] = await db
       .update(followUps)
-      .set(data)
+      .set(processedData)
       .where(eq(followUps.id, id))
       .returning();
     return updatedFollowUp;
