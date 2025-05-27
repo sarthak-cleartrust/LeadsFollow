@@ -36,6 +36,16 @@ export default function Dashboard() {
       console.log("Could not load follow-ups");
     }
   });
+
+  // Query for follow-up settings
+  const { data: settings } = useQuery({
+    queryKey: ["/api/follow-up-settings"],
+    enabled: !!user,
+    retry: false,
+    onError: () => {
+      console.log("Could not load settings");
+    }
+  });
   
   // Calculate stats with dynamic prospect status
   const stats = {
