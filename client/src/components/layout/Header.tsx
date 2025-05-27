@@ -88,7 +88,7 @@ export default function Header() {
                       <div key={followUp.id} className="p-3 border-b border-neutral-100 dark:border-border hover:bg-neutral-50 dark:hover:bg-muted">
                         <div className="text-sm font-medium">Follow-up due</div>
                         <div className="text-xs text-neutral-500 mt-1">
-                          {followUp.type} follow-up for prospect
+                          {followUp.type} follow-up for <span className="font-medium">{followUp.prospect?.name || 'Unknown prospect'}</span>
                         </div>
                         <div className="text-xs text-neutral-400 mt-1">
                           Due: {new Date(followUp.dueDate).toLocaleDateString()}
