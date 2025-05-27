@@ -26,6 +26,13 @@ export default function FollowUps() {
     staleTime: 0,
   });
 
+  // Initialize optimistic state with actual data
+  useEffect(() => {
+    if (followUps.length > 0) {
+      setOptimisticFollowUps(followUps);
+    }
+  }, [followUps]);
+
   // Complete follow-up mutation
   const completeFollowUpMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
