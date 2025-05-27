@@ -154,7 +154,7 @@ export default function FollowUps() {
       
       updateFollowUpMutation.mutate({
         id: draggedItem.id,
-        data: { dueDate: newDueDate.toISOString().split('T')[0] }
+        data: { dueDate: newDueDate.toISOString() }
       });
     }
     
