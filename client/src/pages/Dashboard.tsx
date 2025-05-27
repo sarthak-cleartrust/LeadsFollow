@@ -41,8 +41,14 @@ export default function Dashboard() {
   const stats = {
     totalProspects: prospects?.length || 0,
     pendingFollowUps: followUps?.filter((f: any) => !f.completed)?.length || 0,
-    overdueFollowUps: 0,
-    activeProspects: 0
+    overdueFollowUps: followUps?.filter((f: any) => {
+      if (f.completed) return false;
+      const dueDate = new Date(f.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return dueDate < today;
+    })?.length || 0,
+    activeProspects: prospects?.filter((p: any) => p.status === 'active')?.length || 0
   };
   
   return (
