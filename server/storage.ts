@@ -430,6 +430,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateFollowUp(id: number, data: Partial<FollowUp>): Promise<FollowUp | undefined> {
+    console.log("=== DATABASE STORAGE UPDATE ===");
+    console.log("Update data received:", JSON.stringify(data, null, 2));
+    console.log("Data types:", Object.keys(data).map(key => `${key}: ${typeof data[key as keyof typeof data]}`));
+    
     const [updatedFollowUp] = await db
       .update(followUps)
       .set(data)
