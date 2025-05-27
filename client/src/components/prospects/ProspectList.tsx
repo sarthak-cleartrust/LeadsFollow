@@ -49,7 +49,7 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
   
   // Process prospects with status info
   const processedProspects = prospects?.map((prospect: any) => {
-    let statusInfo = { status: "active", label: "Active", color: "text-secondary" };
+    let statusInfo = { status: "new", label: "New", color: "text-neutral-500" };
     
     if (prospect.lastContactDate && settings) {
       const lastContact = new Date(prospect.lastContactDate);
@@ -68,6 +68,8 @@ export default function ProspectList({ selectedProspectId, onSelectProspect, onA
           label: "Follow-up today", 
           color: "text-alert" 
         };
+      } else {
+        statusInfo = { status: "active", label: "Active", color: "text-secondary" };
       }
     }
     
