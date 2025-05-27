@@ -22,7 +22,8 @@ export default function FollowUps() {
   // Query for follow-ups
   const { data: followUps = [], isLoading: isLoadingFollowUps } = useQuery({
     queryKey: ["/api/follow-ups"],
-    staleTime: 60 * 1000,
+    staleTime: 0, // Force fresh data
+    gcTime: 0, // Don't cache
   });
 
   // Complete follow-up mutation

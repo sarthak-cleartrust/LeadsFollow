@@ -447,7 +447,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Follow-up routes
   app.get("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log("=== API FOLLOW-UPS ROUTE CALLED ===");
       const followUps = await storage.getAllFollowUps(req.user!.id);
+      console.log("=== FINAL API RESPONSE ===");
+      console.log("Returning followUps count:", followUps.length);
+      console.log("Returning followUps IDs:", followUps.map(f => f.id));
+      res.setHeader('Cache-Control', 'no-cache');
       res.json(followUps);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
