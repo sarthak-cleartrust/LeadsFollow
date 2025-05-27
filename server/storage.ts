@@ -45,6 +45,7 @@ export interface IStorage {
   getFollowUp(id: number): Promise<FollowUp | undefined>;
   getFollowUpsByProspect(prospectId: number): Promise<FollowUp[]>;
   getPendingFollowUps(userId: number): Promise<(FollowUp & { prospect: Prospect })[]>;
+  getAllFollowUps(userId: number): Promise<(FollowUp & { prospect: Prospect })[]>;
   createFollowUp(followUp: InsertFollowUp): Promise<FollowUp>;
   updateFollowUp(id: number, data: Partial<FollowUp>): Promise<FollowUp | undefined>;
   deleteFollowUp(id: number): Promise<boolean>;
@@ -416,6 +417,23 @@ export class DatabaseStorage implements IStorage {
           eq(followUps.completed, false)
         )
       )
+      .orderBy(followUps.dueDate);
+
+    return followUpsList.map(followUp => {
+      const prospect = userProspects.find(p => p.id === followUp.prospectId)!;
+      return { ...followUp, prospect };
+    });
+  }
+
+  async getAllFollowUps(userId: number): Promise<(FollowUp & { prospect: Prospect })[]> {
+    const userProspects = await this.getProspectsByUser(userId);
+    if (userProspects.length === 0) return [];
+
+    const prospectIds = userProspects.map(p => p.id);
+    const followUpsList = await db
+      .select()
+      .from(followUps)
+      .where(inArray(followUps.prospectId, prospectIds))
       .orderBy(followUps.dueDate);
 
     return followUpsList.map(followUp => {

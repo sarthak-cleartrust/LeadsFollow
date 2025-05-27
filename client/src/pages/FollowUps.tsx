@@ -92,6 +92,7 @@ export default function FollowUps() {
 
     console.log("=== CATEGORIZING FOLLOW-UPS ===");
     console.log("Raw followUps data:", followUps);
+    console.log("Follow-up IDs:", followUps.map((f: any) => f.id));
 
     (followUps as any[]).forEach((followUp: any) => {
       const status = getFollowUpStatus(followUp);

@@ -447,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Follow-up routes
   app.get("/api/follow-ups", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const followUps = await storage.getPendingFollowUps(req.user!.id);
+      const followUps = await storage.getAllFollowUps(req.user!.id);
       res.json(followUps);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
