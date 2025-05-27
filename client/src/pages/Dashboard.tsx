@@ -150,15 +150,16 @@ export default function Dashboard() {
       
       {/* Main Dashboard Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Get Started Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
-            <CardDescription>
-              Follow these steps to set up your lead tracking
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Get Started Card - only show if Gmail not connected */}
+        {!user?.gmailConnected && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Getting Started</CardTitle>
+              <CardDescription>
+                Follow these steps to set up your lead tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="p-4 border rounded-md flex items-start gap-3">
               <div className="bg-primary/10 p-2 rounded-full mt-0.5">
                 <span className="text-primary font-bold text-sm">1</span>
@@ -219,6 +220,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        )}
         
         {/* Tips & Best Practices */}
         <Card>
