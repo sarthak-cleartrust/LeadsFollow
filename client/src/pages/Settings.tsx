@@ -418,7 +418,7 @@ export default function Settings() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="w-4 h-4 bg-alert rounded-full mr-2"></div>
+                            <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
                             <span>High Priority</span>
                           </div>
                           <div>
@@ -428,7 +428,7 @@ export default function Settings() {
                         
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="w-4 h-4 bg-orange-400 rounded-full mr-2"></div>
+                            <div className="w-4 h-4 bg-orange-500 rounded-full mr-2"></div>
                             <span>Medium Priority</span>
                           </div>
                           <div>
@@ -442,7 +442,7 @@ export default function Settings() {
                         
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="w-4 h-4 bg-secondary rounded-full mr-2"></div>
+                            <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
                             <span>Low Priority</span>
                           </div>
                           <div>
