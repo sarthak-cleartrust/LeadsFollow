@@ -13,14 +13,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { eventBus, EVENTS } from "@/lib/eventBus";
+import { useRefreshTrigger } from "@/lib/refreshTrigger";
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { mutate: syncGmail, isPending: isSyncing } = useSyncGmail();
   const queryClient = useQueryClient();
+  const [forceRefresh, setForceRefresh] = useState(0);
   
   // Query for prospects
   const { data: prospects } = useQuery({
@@ -28,23 +30,21 @@ export default function Sidebar() {
     staleTime: 60 * 1000, // 1 minute
   });
   
-  // Query for follow-ups
+  // Query for follow-ups - add forceRefresh to force re-render
   const { data: followUps, refetch: refetchFollowUps } = useQuery({
-    queryKey: ["/api/follow-ups"],
+    queryKey: ["/api/follow-ups", forceRefresh],
     staleTime: 0, // Always fresh
   });
 
-  // Subscribe to follow-ups updates
+  // Listen for refresh trigger
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe(EVENTS.FOLLOW_UPS_UPDATED, (updatedFollowUps) => {
-      // Update cache with new data
-      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
-      // Also refetch to ensure consistency
+    const unsubscribe = useRefreshTrigger(() => {
+      setForceRefresh(prev => prev + 1);
       refetchFollowUps();
     });
 
     return unsubscribe;
-  }, [refetchFollowUps, queryClient]);
+  }, [refetchFollowUps]);
   
   const prospectCount = prospects?.length || 0;
   // Only count pending follow-ups (not completed ones)

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import FollowUpModal from "@/components/modals/FollowUpModal";
 import { eventBus, EVENTS } from "@/lib/eventBus";
+import { triggerRefresh } from "@/lib/refreshTrigger";
 
 type FollowUpStatus = 'overdue' | 'today' | 'upcoming' | 'completed';
 
@@ -197,12 +198,8 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Force immediate update of all queries that use follow-ups data
-      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
-      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      
-      // Force immediate refetch to ensure all components update
-      queryClient.refetchQueries({ queryKey: ["/api/follow-ups"], type: 'active' });
+      // FORCE IMMEDIATE REFRESH OF ALL COMPONENTS
+      triggerRefresh();
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,

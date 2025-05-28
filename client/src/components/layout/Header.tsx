@@ -18,6 +18,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { eventBus, EVENTS } from "@/lib/eventBus";
+import { useRefreshTrigger } from "@/lib/refreshTrigger";
 
 export default function Header() {
   const { user, logout, isLogoutPending } = useAuth();
@@ -28,6 +29,7 @@ export default function Header() {
   );
   const notificationRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const [forceRefresh, setForceRefresh] = useState(0);
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
@@ -46,23 +48,21 @@ export default function Header() {
     };
   }, [showNotifications]);
 
-  // Query pending follow-ups for notification count
+  // Query pending follow-ups for notification count - add forceRefresh to force re-render
   const { data: followUps, refetch: refetchFollowUps } = useQuery({
-    queryKey: ["/api/follow-ups"],
+    queryKey: ["/api/follow-ups", forceRefresh],
     staleTime: 0, // Always fresh
   });
 
-  // Subscribe to follow-ups updates
+  // Listen for refresh trigger
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe(EVENTS.FOLLOW_UPS_UPDATED, (updatedFollowUps) => {
-      // Update cache with new data
-      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
-      // Also refetch to ensure consistency
+    const unsubscribe = useRefreshTrigger(() => {
+      setForceRefresh(prev => prev + 1);
       refetchFollowUps();
     });
 
     return unsubscribe;
-  }, [refetchFollowUps, queryClient]);
+  }, [refetchFollowUps]);
 
   // Only count pending follow-ups (not completed ones)
   const pendingFollowUps = Array.isArray(followUps) ? followUps.filter((f: any) => !f.completed) : [];
