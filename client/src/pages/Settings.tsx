@@ -41,13 +41,14 @@ export default function Settings() {
   
   // Format last sync time from user data
   const lastSyncTime = user?.lastSyncDate 
-    ? new Date(user.lastSyncDate).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric', 
-        hour: 'numeric',
+    ? new Date(user.lastSyncDate).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: true
-      })
+        hour12: false
+      }).replace(',', ',')
     : "Never";
   
   return (
