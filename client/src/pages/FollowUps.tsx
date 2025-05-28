@@ -196,11 +196,11 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Force update cache data for all components immediately
+      // Force immediate update of cached data to sync all components
       queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
       
-      // Also invalidate to ensure fresh data eventually
-      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      // Force all components to re-render with updated data
+      window.dispatchEvent(new CustomEvent('follow-ups-updated', { detail: updatedFollowUps }));
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,

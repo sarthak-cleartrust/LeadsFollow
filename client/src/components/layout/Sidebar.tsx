@@ -12,12 +12,14 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { mutate: syncGmail, isPending: isSyncing } = useSyncGmail();
+  const queryClient = useQueryClient();
   
   // Query for prospects
   const { data: prospects } = useQuery({
@@ -26,10 +28,23 @@ export default function Sidebar() {
   });
   
   // Query for follow-ups
-  const { data: followUps } = useQuery({
+  const { data: followUps, refetch: refetchFollowUps } = useQuery({
     queryKey: ["/api/follow-ups"],
     staleTime: 0, // Always fresh
   });
+
+  // Listen for follow-ups updates from drag and drop
+  useEffect(() => {
+    const handleFollowUpsUpdate = () => {
+      refetchFollowUps();
+    };
+
+    window.addEventListener('follow-ups-updated', handleFollowUpsUpdate);
+    
+    return () => {
+      window.removeEventListener('follow-ups-updated', handleFollowUpsUpdate);
+    };
+  }, [refetchFollowUps]);
   
   const prospectCount = prospects?.length || 0;
   // Only count pending follow-ups (not completed ones)

@@ -45,10 +45,23 @@ export default function Header() {
   }, [showNotifications]);
 
   // Query pending follow-ups for notification count
-  const { data: followUps } = useQuery({
+  const { data: followUps, refetch: refetchFollowUps } = useQuery({
     queryKey: ["/api/follow-ups"],
     staleTime: 0, // Always fresh
   });
+
+  // Listen for follow-ups updates from drag and drop
+  useEffect(() => {
+    const handleFollowUpsUpdate = () => {
+      refetchFollowUps();
+    };
+
+    window.addEventListener('follow-ups-updated', handleFollowUpsUpdate);
+    
+    return () => {
+      window.removeEventListener('follow-ups-updated', handleFollowUpsUpdate);
+    };
+  }, [refetchFollowUps]);
 
   // Only count pending follow-ups (not completed ones)
   const pendingFollowUps = Array.isArray(followUps) ? followUps.filter((f: any) => !f.completed) : [];
