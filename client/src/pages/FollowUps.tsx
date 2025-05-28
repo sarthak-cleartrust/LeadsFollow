@@ -196,6 +196,9 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
+      // Immediately update cached data to update sidebar and header
+      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
         completed: true
@@ -212,6 +215,9 @@ export default function FollowUps() {
           : followUp
       );
       setOptimisticFollowUps(updatedFollowUps);
+      
+      // Immediately update cached data to update sidebar and header
+      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
