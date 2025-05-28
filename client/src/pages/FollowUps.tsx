@@ -208,9 +208,6 @@ export default function FollowUps() {
     }
     // Handle moving from completed to other statuses
     else if (currentStatus === 'completed') {
-      // Immediately invalidate cache first
-      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      
       // Update optimistic state immediately
       const currentData = Array.isArray(followUps) ? followUps : [];
       const baseData = optimisticFollowUps.length > 0 ? optimisticFollowUps : currentData;
@@ -220,6 +217,9 @@ export default function FollowUps() {
           : followUp
       );
       setOptimisticFollowUps(updatedFollowUps);
+      
+      // FORCE IMMEDIATE REFRESH FOR MOVING FROM COMPLETED
+      triggerRefresh();
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
