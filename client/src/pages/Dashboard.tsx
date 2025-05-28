@@ -238,33 +238,33 @@ export default function Dashboard() {
         )}
         
         {/* Tips & Best Practices */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tips & Best Practices</CardTitle>
-            <CardDescription>
+        <Card className="w-full">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">Tips & Best Practices</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Maximize your follow-up effectiveness
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 border rounded-md">
-              <h3 className="font-medium mb-1">Optimal Follow-up Timing</h3>
-              <p className="text-sm text-neutral-500">
+          <CardContent className="px-4 sm:px-6 space-y-3 sm:space-y-4">
+            <div className="p-3 sm:p-4 border rounded-md">
+              <h3 className="font-medium mb-1 text-sm sm:text-base">Optimal Follow-up Timing</h3>
+              <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                 Research shows that following up within 24-48 hours increases response rates by up to 50%. 
                 Set your initial follow-up timing in Settings.
               </p>
             </div>
             
-            <div className="p-4 border rounded-md">
-              <h3 className="font-medium mb-1">Use Varied Communication Channels</h3>
-              <p className="text-sm text-neutral-500">
+            <div className="p-3 sm:p-4 border rounded-md">
+              <h3 className="font-medium mb-1 text-sm sm:text-base">Use Varied Communication Channels</h3>
+              <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                 Mix email, phone calls, and other contact methods for higher engagement. 
                 Track different contact types in your follow-ups.
               </p>
             </div>
             
-            <div className="p-4 border rounded-md">
-              <h3 className="font-medium mb-1">Personalize Each Touchpoint</h3>
-              <p className="text-sm text-neutral-500">
+            <div className="p-3 sm:p-4 border rounded-md">
+              <h3 className="font-medium mb-1 text-sm sm:text-base">Personalize Each Touchpoint</h3>
+              <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                 Reference previous conversations and add personalized notes when scheduling follow-ups 
                 to increase your prospect engagement.
               </p>
