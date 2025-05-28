@@ -39,8 +39,16 @@ export default function Settings() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  // Format last sync time (would come from the backend in a real implementation)
-  const lastSyncTime = "Today, 10:45 AM";
+  // Format last sync time from user data
+  const lastSyncTime = user?.lastSyncDate 
+    ? new Date(user.lastSyncDate).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric', 
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    : "Never";
   
   return (
     <div className="p-6 bg-neutral-200 dark:bg-background h-full overflow-y-auto">
