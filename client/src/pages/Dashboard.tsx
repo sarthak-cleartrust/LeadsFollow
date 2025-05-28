@@ -19,34 +19,19 @@ export default function Dashboard() {
   const [showGmailModal, setShowGmailModal] = useState(false);
   const queryClient = useQueryClient();
   
-  // Query for prospects with error handling - always fetch fresh data
+  // Query for prospects with error handling
   const { data: prospects = [] } = useQuery({
-    queryKey: ["/api/prospects", Date.now()], // Force fresh fetch every time
+    queryKey: ["/api/prospects"],
     enabled: !!user,
-    retry: false,
-    staleTime: 0,
-    cacheTime: 0
+    retry: false
   });
   
-  // Query for follow-ups with error handling - always fetch fresh data
+  // Query for follow-ups with error handling
   const { data: followUps = [] } = useQuery({
-    queryKey: ["/api/follow-ups", Date.now()], // Force fresh fetch every time
+    queryKey: ["/api/follow-ups"],
     enabled: !!user,
-    retry: false,
-    staleTime: 0,
-    cacheTime: 0
+    retry: false
   });
-
-  // Listen for refresh trigger from drag and drop
-  useEffect(() => {
-    const unsubscribe = useRefreshTrigger(() => {
-      // Force immediate cache invalidation and refetch
-      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
-    });
-
-    return unsubscribe;
-  }, [queryClient]);
 
   // Query for follow-up settings
   const { data: settings } = useQuery({

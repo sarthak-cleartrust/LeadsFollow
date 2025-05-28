@@ -109,12 +109,12 @@ export default function FollowUps() {
       queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
     },
     onSuccess: () => {
-      // FORCE IMMEDIATE REFRESH OF DASHBOARD DATA
-      queryClient.refetchQueries({ queryKey: ["/api/follow-ups"] });
-      queryClient.refetchQueries({ queryKey: ["/api/prospects"] });
+      // FORCE IMMEDIATE REFRESH OF ALL DATA INCLUDING DASHBOARD
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
       
       toast({
-        title: "Follow-up updated",
+        title: "Follow-up updated", 
         description: "Follow-up has been moved successfully.",
       });
     },
