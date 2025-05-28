@@ -47,7 +47,7 @@ export default function Header() {
   // Query pending follow-ups for notification count
   const { data: followUps } = useQuery({
     queryKey: ["/api/follow-ups"],
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 0, // Always fresh
   });
 
   // Only count pending follow-ups (not completed ones)

@@ -28,7 +28,7 @@ export default function Sidebar() {
   // Query for follow-ups
   const { data: followUps } = useQuery({
     queryKey: ["/api/follow-ups"],
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 0, // Always fresh
   });
   
   const prospectCount = prospects?.length || 0;
