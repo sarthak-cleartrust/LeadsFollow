@@ -255,6 +255,9 @@ export default function FollowUps() {
       console.log("Final payload:", payload);
       console.log("Final payload JSON:", JSON.stringify(payload));
       
+      // FORCE IMMEDIATE REFRESH FOR DATE CHANGES TOO
+      triggerRefresh();
+      
       updateFollowUpMutation.mutate({
         id: draggedItem.id,
         data: payload
