@@ -404,14 +404,6 @@ export default function Settings() {
                       </div>
                       <Switch defaultChecked={true} />
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">Follow-up Completions</div>
-                        <div className="text-sm text-neutral-500">Get notified when follow-ups are marked as completed</div>
-                      </div>
-                      <Switch defaultChecked={false} />
-                    </div>
                   </div>
                 </div>
               </CardContent>
