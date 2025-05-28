@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import FollowUpModal from "@/components/modals/FollowUpModal";
+import { eventBus, EVENTS } from "@/lib/eventBus";
 
 type FollowUpStatus = 'overdue' | 'today' | 'upcoming' | 'completed';
 
@@ -196,11 +197,8 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Force immediate update of cached data to sync all components
-      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
-      
-      // Force all components to re-render with updated data
-      window.dispatchEvent(new CustomEvent('follow-ups-updated', { detail: updatedFollowUps }));
+      // Use pub/sub system to notify all components
+      eventBus.emit(EVENTS.FOLLOW_UPS_UPDATED, updatedFollowUps);
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,

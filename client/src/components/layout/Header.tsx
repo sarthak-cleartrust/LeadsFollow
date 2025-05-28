@@ -15,8 +15,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTheme } from "@/components/ThemeProvider";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { eventBus, EVENTS } from "@/lib/eventBus";
 
 export default function Header() {
   const { user, logout, isLogoutPending } = useAuth();
@@ -26,6 +27,7 @@ export default function Header() {
     document.documentElement.classList.contains('dark')
   );
   const notificationRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
@@ -50,18 +52,17 @@ export default function Header() {
     staleTime: 0, // Always fresh
   });
 
-  // Listen for follow-ups updates from drag and drop
+  // Subscribe to follow-ups updates
   useEffect(() => {
-    const handleFollowUpsUpdate = () => {
+    const unsubscribe = eventBus.subscribe(EVENTS.FOLLOW_UPS_UPDATED, (updatedFollowUps) => {
+      // Update cache with new data
+      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      // Also refetch to ensure consistency
       refetchFollowUps();
-    };
+    });
 
-    window.addEventListener('follow-ups-updated', handleFollowUpsUpdate);
-    
-    return () => {
-      window.removeEventListener('follow-ups-updated', handleFollowUpsUpdate);
-    };
-  }, [refetchFollowUps]);
+    return unsubscribe;
+  }, [refetchFollowUps, queryClient]);
 
   // Only count pending follow-ups (not completed ones)
   const pendingFollowUps = Array.isArray(followUps) ? followUps.filter((f: any) => !f.completed) : [];

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { eventBus, EVENTS } from "@/lib/eventBus";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -33,18 +34,17 @@ export default function Sidebar() {
     staleTime: 0, // Always fresh
   });
 
-  // Listen for follow-ups updates from drag and drop
+  // Subscribe to follow-ups updates
   useEffect(() => {
-    const handleFollowUpsUpdate = () => {
+    const unsubscribe = eventBus.subscribe(EVENTS.FOLLOW_UPS_UPDATED, (updatedFollowUps) => {
+      // Update cache with new data
+      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      // Also refetch to ensure consistency
       refetchFollowUps();
-    };
+    });
 
-    window.addEventListener('follow-ups-updated', handleFollowUpsUpdate);
-    
-    return () => {
-      window.removeEventListener('follow-ups-updated', handleFollowUpsUpdate);
-    };
-  }, [refetchFollowUps]);
+    return unsubscribe;
+  }, [refetchFollowUps, queryClient]);
   
   const prospectCount = prospects?.length || 0;
   // Only count pending follow-ups (not completed ones)
