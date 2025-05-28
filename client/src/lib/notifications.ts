@@ -141,26 +141,18 @@ export async function checkAndNotifyFollowUps() {
 let notificationInterval: NodeJS.Timeout | null = null;
 
 export function startNotificationService() {
-  console.log('=== STARTING NOTIFICATION SERVICE ===');
-  console.log('Supported:', NotificationService.isSupported());
-  console.log('Permission:', Notification.permission);
-  console.log('Has Permission:', NotificationService.hasPermission());
-  
   if (!NotificationService.isSupported() || !NotificationService.hasPermission()) {
-    console.log('Cannot start notification service - missing support or permission');
     return;
   }
 
-  // Check every 1 minute for testing
+  // Check every 30 minutes
   if (notificationInterval) {
     clearInterval(notificationInterval);
   }
   
-  console.log('Setting up 1-minute interval for notifications');
-  notificationInterval = setInterval(checkAndNotifyFollowUps, 1 * 60 * 1000);
+  notificationInterval = setInterval(checkAndNotifyFollowUps, 30 * 60 * 1000);
   
   // Check immediately
-  console.log('Running immediate notification check');
   checkAndNotifyFollowUps();
 }
 
