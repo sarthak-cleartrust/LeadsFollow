@@ -60,38 +60,63 @@ export class NotificationService {
 
 // Check for overdue follow-ups and show notifications
 export async function checkAndNotifyFollowUps() {
+  console.log('=== CHECKING FOLLOW-UPS FOR NOTIFICATIONS ===');
+  
   if (!NotificationService.hasPermission()) {
+    console.log('No notification permission, skipping check');
     return;
   }
 
   try {
+    console.log('Fetching follow-ups...');
     const response = await fetch('/api/follow-ups', {
       credentials: 'include'
     });
     
-    if (!response.ok) return;
+    if (!response.ok) {
+      console.log('API response not ok:', response.status);
+      return;
+    }
     
     const followUps = await response.json();
+    console.log('Fetched follow-ups:', followUps.length);
+    
     const now = new Date();
+    console.log('Current time:', now.toISOString());
     
     followUps.forEach((followUp: any) => {
-      if (followUp.completed) return;
+      console.log(`Checking follow-up ${followUp.id}:`, {
+        prospect: followUp.prospect?.name,
+        dueDate: followUp.dueDate,
+        completed: followUp.completed
+      });
+      
+      if (followUp.completed) {
+        console.log(`Follow-up ${followUp.id} is completed, skipping`);
+        return;
+      }
       
       const dueDate = new Date(followUp.dueDate);
       const diffDays = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
+      console.log(`Follow-up ${followUp.id} diff days:`, diffDays);
+      
       if (diffDays < 0) {
         // Overdue
+        console.log(`Showing OVERDUE notification for ${followUp.prospect?.name}`);
         NotificationService.showFollowUpNotification(
           followUp.prospect?.name || 'Unknown',
           'overdue'
         );
       } else if (diffDays === 0) {
         // Due today
+        console.log(`Showing DUE TODAY notification for ${followUp.prospect?.name}`);
         NotificationService.showFollowUpNotification(
           followUp.prospect?.name || 'Unknown',
           'due_today'
         );
+      } else {
+        console.log(`Follow-up ${followUp.id} is upcoming (${diffDays} days), no notification`);
       }
     });
   } catch (error) {
@@ -103,7 +128,13 @@ export async function checkAndNotifyFollowUps() {
 let notificationInterval: NodeJS.Timeout | null = null;
 
 export function startNotificationService() {
+  console.log('=== STARTING NOTIFICATION SERVICE ===');
+  console.log('Supported:', NotificationService.isSupported());
+  console.log('Permission:', Notification.permission);
+  console.log('Has Permission:', NotificationService.hasPermission());
+  
   if (!NotificationService.isSupported() || !NotificationService.hasPermission()) {
+    console.log('Cannot start notification service - missing support or permission');
     return;
   }
 
@@ -112,9 +143,11 @@ export function startNotificationService() {
     clearInterval(notificationInterval);
   }
   
+  console.log('Setting up 1-minute interval for notifications');
   notificationInterval = setInterval(checkAndNotifyFollowUps, 1 * 60 * 1000);
   
   // Check immediately
+  console.log('Running immediate notification check');
   checkAndNotifyFollowUps();
 }
 
