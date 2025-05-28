@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRefreshTrigger } from "@/lib/refreshTrigger";
 import { 
   Users, 
   Mail, 
@@ -16,10 +17,11 @@ import GmailIntegrationModal from "@/components/modals/GmailIntegrationModal";
 export default function Dashboard() {
   const { user } = useAuth();
   const [showGmailModal, setShowGmailModal] = useState(false);
+  const [forceRefresh, setForceRefresh] = useState(0);
   
   // Query for prospects with error handling
-  const { data: prospects = [] } = useQuery({
-    queryKey: ["/api/prospects"],
+  const { data: prospects = [], refetch: refetchProspects } = useQuery({
+    queryKey: ["/api/prospects", forceRefresh],
     enabled: !!user,
     retry: false,
     onError: () => {
@@ -27,15 +29,26 @@ export default function Dashboard() {
     }
   });
   
-  // Query for follow-ups with error handling
-  const { data: followUps = [] } = useQuery({
-    queryKey: ["/api/follow-ups"],
+  // Query for follow-ups with error handling - add forceRefresh to trigger updates
+  const { data: followUps = [], refetch: refetchFollowUps } = useQuery({
+    queryKey: ["/api/follow-ups", forceRefresh],
     enabled: !!user,
     retry: false,
     onError: () => {
       console.log("Could not load follow-ups");
     }
   });
+
+  // Listen for refresh trigger from drag and drop
+  useEffect(() => {
+    const unsubscribe = useRefreshTrigger(() => {
+      setForceRefresh(prev => prev + 1);
+      refetchFollowUps();
+      refetchProspects();
+    });
+
+    return unsubscribe;
+  }, [refetchFollowUps, refetchProspects]);
 
   // Query for follow-up settings
   const { data: settings } = useQuery({
