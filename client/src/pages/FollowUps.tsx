@@ -196,8 +196,10 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Immediately update cached data to update sidebar and header
-      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      // Force immediate refresh of all components
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      }, 0);
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
@@ -216,8 +218,10 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Immediately update cached data to update sidebar and header
-      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      // Force immediate refresh of all components
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      }, 0);
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
