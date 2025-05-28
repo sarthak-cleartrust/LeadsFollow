@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRefreshTrigger } from "@/lib/refreshTrigger";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Users, 
   Mail, 
@@ -17,26 +16,20 @@ import GmailIntegrationModal from "@/components/modals/GmailIntegrationModal";
 export default function Dashboard() {
   const { user } = useAuth();
   const [showGmailModal, setShowGmailModal] = useState(false);
-  const queryClient = useQueryClient();
   
-  // Query for prospects - fetch fresh data every time dashboard loads
+  // Simple queries that fetch fresh data on every dashboard visit
   const { data: prospects = [] } = useQuery({
-    queryKey: ["/api/prospects", Math.random()], // Always fetch fresh
+    queryKey: ["/api/prospects"],
     enabled: !!user,
     retry: false,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 0
+    refetchOnMount: "always"
   });
   
-  // Query for follow-ups - fetch fresh data every time dashboard loads
   const { data: followUps = [] } = useQuery({
-    queryKey: ["/api/follow-ups", Math.random()], // Always fetch fresh
+    queryKey: ["/api/follow-ups"], 
     enabled: !!user,
     retry: false,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 0
+    refetchOnMount: "always"
   });
 
   // Query for follow-up settings
