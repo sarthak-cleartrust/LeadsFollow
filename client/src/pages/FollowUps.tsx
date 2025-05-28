@@ -186,6 +186,16 @@ export default function FollowUps() {
 
     // Handle moving to completed
     if (targetStatus === 'completed') {
+      // Update optimistic state immediately
+      const currentData = Array.isArray(followUps) ? followUps : [];
+      const baseData = optimisticFollowUps.length > 0 ? optimisticFollowUps : currentData;
+      const updatedFollowUps = baseData.map((followUp: any) =>
+        followUp.id === draggedItem.id
+          ? { ...followUp, completed: true, completedDate: new Date().toISOString() }
+          : followUp
+      );
+      setOptimisticFollowUps(updatedFollowUps);
+      
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
         completed: true
@@ -193,6 +203,16 @@ export default function FollowUps() {
     }
     // Handle moving from completed to other statuses
     else if (currentStatus === 'completed') {
+      // Update optimistic state immediately
+      const currentData = Array.isArray(followUps) ? followUps : [];
+      const baseData = optimisticFollowUps.length > 0 ? optimisticFollowUps : currentData;
+      const updatedFollowUps = baseData.map((followUp: any) =>
+        followUp.id === draggedItem.id
+          ? { ...followUp, completed: false, completedDate: null }
+          : followUp
+      );
+      setOptimisticFollowUps(updatedFollowUps);
+      
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
         completed: false
