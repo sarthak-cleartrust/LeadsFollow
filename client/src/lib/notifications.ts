@@ -145,11 +145,14 @@ export function startNotificationService() {
     return;
   }
 
-  // Check every 30 minutes
+  // Clear any existing interval first
   if (notificationInterval) {
     clearInterval(notificationInterval);
+    notificationInterval = null;
   }
   
+  // Set up 30-minute interval (30 * 60 * 1000 = 1,800,000 ms)
+  console.log('Setting up 30-minute notification interval (1,800,000 ms)');
   notificationInterval = setInterval(checkAndNotifyFollowUps, 30 * 60 * 1000);
   
   // Check immediately
