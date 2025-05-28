@@ -186,6 +186,9 @@ export default function FollowUps() {
 
     // Handle moving to completed
     if (targetStatus === 'completed') {
+      // Immediately invalidate cache first
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      
       // Update optimistic state immediately
       const currentData = Array.isArray(followUps) ? followUps : [];
       const baseData = optimisticFollowUps.length > 0 ? optimisticFollowUps : currentData;
@@ -196,11 +199,6 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Force immediate refresh of all components
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      }, 0);
-      
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
         completed: true
@@ -208,6 +206,9 @@ export default function FollowUps() {
     }
     // Handle moving from completed to other statuses
     else if (currentStatus === 'completed') {
+      // Immediately invalidate cache first
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      
       // Update optimistic state immediately
       const currentData = Array.isArray(followUps) ? followUps : [];
       const baseData = optimisticFollowUps.length > 0 ? optimisticFollowUps : currentData;
@@ -217,11 +218,6 @@ export default function FollowUps() {
           : followUp
       );
       setOptimisticFollowUps(updatedFollowUps);
-      
-      // Force immediate refresh of all components
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      }, 0);
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
