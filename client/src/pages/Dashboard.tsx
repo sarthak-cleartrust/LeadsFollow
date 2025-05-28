@@ -164,7 +164,7 @@ export default function Dashboard() {
       </div>
       
       {/* Main Dashboard Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid gap-6 ${!user?.gmailConnected ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
         {/* Get Started Card - only show if Gmail not connected */}
         {!user?.gmailConnected && (
           <Card>
