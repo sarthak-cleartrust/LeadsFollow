@@ -107,12 +107,12 @@ export function startNotificationService() {
     return;
   }
 
-  // Check every 30 minutes
+  // Check every 1 minute for testing
   if (notificationInterval) {
     clearInterval(notificationInterval);
   }
   
-  notificationInterval = setInterval(checkAndNotifyFollowUps, 30 * 60 * 1000);
+  notificationInterval = setInterval(checkAndNotifyFollowUps, 1 * 60 * 1000);
   
   // Check immediately
   checkAndNotifyFollowUps();
