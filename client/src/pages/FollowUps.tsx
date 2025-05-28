@@ -197,8 +197,12 @@ export default function FollowUps() {
       );
       setOptimisticFollowUps(updatedFollowUps);
       
-      // Use pub/sub system to notify all components
-      eventBus.emit(EVENTS.FOLLOW_UPS_UPDATED, updatedFollowUps);
+      // Force immediate update of all queries that use follow-ups data
+      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
+      
+      // Force immediate refetch to ensure all components update
+      queryClient.refetchQueries({ queryKey: ["/api/follow-ups"], type: 'active' });
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
