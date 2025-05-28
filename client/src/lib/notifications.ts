@@ -139,39 +139,52 @@ export async function checkAndNotifyFollowUps() {
 
 // Set up periodic notification checks
 let notificationInterval: NodeJS.Timeout | null = null;
-let serviceStarted = false;
+const LAST_CHECK_KEY = 'leadfollow_last_notification_check';
+const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+function shouldCheckNotifications(): boolean {
+  const lastCheck = localStorage.getItem(LAST_CHECK_KEY);
+  if (!lastCheck) return true;
+  
+  const timeSinceLastCheck = Date.now() - parseInt(lastCheck);
+  return timeSinceLastCheck >= CHECK_INTERVAL_MS;
+}
+
+function markNotificationCheck() {
+  localStorage.setItem(LAST_CHECK_KEY, Date.now().toString());
+}
 
 export function startNotificationService() {
   if (!NotificationService.isSupported() || !NotificationService.hasPermission()) {
     return;
   }
 
-  // Only start if not already running
-  if (serviceStarted && notificationInterval) {
-    console.log('Notification service already running, skipping restart');
-    return;
+  // Check immediately if enough time has passed
+  if (shouldCheckNotifications()) {
+    console.log('Checking notifications (30+ minutes since last check)');
+    checkAndNotifyFollowUps();
+    markNotificationCheck();
+  } else {
+    console.log('Skipping notification check (last check was less than 30 minutes ago)');
   }
 
-  // Clear any existing interval first
-  if (notificationInterval) {
-    clearInterval(notificationInterval);
-    notificationInterval = null;
+  // Set up interval only if not already running
+  if (!notificationInterval) {
+    console.log('Setting up 30-minute notification interval');
+    notificationInterval = setInterval(() => {
+      if (shouldCheckNotifications()) {
+        console.log('30-minute interval triggered - checking notifications');
+        checkAndNotifyFollowUps();
+        markNotificationCheck();
+      }
+    }, CHECK_INTERVAL_MS);
   }
-  
-  // Set up 30-minute interval (30 * 60 * 1000 = 1,800,000 ms)
-  console.log('Setting up 30-minute notification interval (1,800,000 ms)');
-  notificationInterval = setInterval(checkAndNotifyFollowUps, 30 * 60 * 1000);
-  serviceStarted = true;
-  
-  // Check immediately
-  checkAndNotifyFollowUps();
 }
 
 export function stopNotificationService() {
   if (notificationInterval) {
     clearInterval(notificationInterval);
     notificationInterval = null;
-    serviceStarted = false;
     console.log('Notification service stopped');
   }
 }

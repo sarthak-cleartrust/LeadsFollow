@@ -24,18 +24,14 @@ function App() {
     staleTime: 5 * 60 * 1000,
   });
   
-  // Start notification service if browser notifications are enabled
+  // Start notification service once when user is authenticated and has notifications enabled
   useEffect(() => {
     if (user && settings?.notifyBrowser) {
       startNotificationService();
     } else {
       stopNotificationService();
     }
-    
-    return () => {
-      stopNotificationService();
-    };
-  }, [user, settings?.notifyBrowser]);
+  }, [user?.id, settings?.notifyBrowser]); // Only restart when user ID or notification setting changes
   
   // Show a loading spinner while checking authentication
   if (isLoading) {
