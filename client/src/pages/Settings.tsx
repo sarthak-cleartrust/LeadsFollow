@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useGmailAuthUrl, useSyncGmail, useDisconnectGmail } from "@/lib/gmail";
+import { apiRequest } from "@/lib/queryClient";
+import { NotificationService, startNotificationService, stopNotificationService } from "@/lib/notifications";
 import {
   Cog,
   MailCheck,
@@ -25,6 +27,7 @@ import FollowUpRulesModal from "@/components/modals/FollowUpRulesModal";
 export default function Settings() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("general");
   const [showGmailModal, setShowGmailModal] = useState(false);
   const [showFollowUpRulesModal, setShowFollowUpRulesModal] = useState(false);
@@ -32,6 +35,34 @@ export default function Settings() {
   
   const { mutate: syncGmail, isPending: isSyncing } = useSyncGmail();
   const { mutate: disconnectGmail, isPending: isDisconnecting } = useDisconnectGmail();
+  
+  // Mutation for updating notification settings
+  const updateNotificationSettings = useMutation({
+    mutationFn: async (data: { notifyBrowser: boolean }) => {
+      const response = await fetch("/api/follow-up-settings", {
+        method: "PUT",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to update settings");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-up-settings"] });
+      toast({
+        title: "Settings updated",
+        description: "Notification preferences have been saved."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error updating settings",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
+  });
   
   // Query for follow-up settings
   const { data: settings, isLoading: isLoadingSettings } = useQuery({
@@ -50,6 +81,33 @@ export default function Settings() {
         hour12: false
       }).replace(',', ',')
     : "Never";
+
+  // Handle browser notification toggle
+  const handleBrowserNotificationToggle = async (enabled: boolean) => {
+    if (enabled) {
+      // Request permission for browser notifications
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          updateNotificationSettings.mutate({ notifyBrowser: true });
+        } else {
+          toast({
+            title: "Permission denied",
+            description: "Please allow notifications in your browser settings to enable this feature.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "Not supported",
+          description: "Your browser doesn't support notifications.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      updateNotificationSettings.mutate({ notifyBrowser: false });
+    }
+  };
   
   return (
     <div className="p-6 bg-neutral-200 dark:bg-background h-full overflow-y-auto">
@@ -300,36 +358,27 @@ export default function Settings() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">Email Notifications</div>
-                        <div className="text-sm text-neutral-500">Receive notifications via email</div>
-                      </div>
-                      <Switch
-                        checked={settings?.notifyEmail}
-                        disabled={isLoadingSettings}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
                         <div className="font-medium">Browser Notifications</div>
-                        <div className="text-sm text-neutral-500">Receive notifications in your browser</div>
+                        <div className="text-sm text-neutral-500">Receive notifications in your browser when follow-ups are due</div>
                       </div>
                       <Switch
-                        checked={settings?.notifyBrowser}
+                        checked={settings?.notifyBrowser || false}
                         disabled={isLoadingSettings}
+                        onCheckedChange={handleBrowserNotificationToggle}
                       />
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">Daily Digest</div>
-                        <div className="text-sm text-neutral-500">Receive a daily summary of pending follow-ups</div>
+                    {settings?.notifyBrowser && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md text-sm">
+                        <div className="flex items-center mb-2">
+                          <Bell className="h-4 w-4 text-blue-500 mr-2" />
+                          <span className="font-medium text-blue-700 dark:text-blue-300">Browser notifications enabled</span>
+                        </div>
+                        <p className="text-blue-600 dark:text-blue-400">
+                          You'll receive browser notifications for overdue follow-ups and upcoming tasks.
+                        </p>
                       </div>
-                      <Switch
-                        checked={settings?.notifyDailyDigest}
-                        disabled={isLoadingSettings}
-                      />
-                    </div>
+                    )}
                   </div>
                 </div>
                 
