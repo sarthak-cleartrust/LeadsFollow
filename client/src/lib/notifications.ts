@@ -26,15 +26,28 @@ export class NotificationService {
   }
 
   static showNotification(title: string, options?: NotificationOptions) {
+    console.log('=== SHOWING NOTIFICATION ===');
+    console.log('Title:', title);
+    console.log('Supported:', this.isSupported());
+    console.log('Has Permission:', this.hasPermission());
+    
     if (!this.isSupported() || !this.hasPermission()) {
+      console.log('Cannot show notification - no support or permission');
       return null;
     }
 
-    return new Notification(title, {
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
-      ...options
-    });
+    try {
+      const notification = new Notification(title, {
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        ...options
+      });
+      console.log('Notification created successfully:', notification);
+      return notification;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      return null;
+    }
   }
 
   static showFollowUpNotification(prospect: string, type: 'overdue' | 'due_today' | 'upcoming') {
