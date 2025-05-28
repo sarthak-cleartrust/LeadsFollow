@@ -19,18 +19,22 @@ export default function Dashboard() {
   const [showGmailModal, setShowGmailModal] = useState(false);
   const queryClient = useQueryClient();
   
-  // Query for prospects with error handling
+  // Query for prospects with error handling - always fetch fresh data
   const { data: prospects = [] } = useQuery({
-    queryKey: ["/api/prospects"],
+    queryKey: ["/api/prospects", Date.now()], // Force fresh fetch every time
     enabled: !!user,
-    retry: false
+    retry: false,
+    staleTime: 0,
+    cacheTime: 0
   });
   
-  // Query for follow-ups with error handling
+  // Query for follow-ups with error handling - always fetch fresh data
   const { data: followUps = [] } = useQuery({
-    queryKey: ["/api/follow-ups"],
+    queryKey: ["/api/follow-ups", Date.now()], // Force fresh fetch every time
     enabled: !!user,
-    retry: false
+    retry: false,
+    staleTime: 0,
+    cacheTime: 0
   });
 
   // Listen for refresh trigger from drag and drop
