@@ -407,9 +407,6 @@ export default function Settings() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button>Save Notification Settings</Button>
-              </CardFooter>
             </Card>
           </TabsContent>
           
