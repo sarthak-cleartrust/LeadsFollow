@@ -139,9 +139,16 @@ export async function checkAndNotifyFollowUps() {
 
 // Set up periodic notification checks
 let notificationInterval: NodeJS.Timeout | null = null;
+let serviceStarted = false;
 
 export function startNotificationService() {
   if (!NotificationService.isSupported() || !NotificationService.hasPermission()) {
+    return;
+  }
+
+  // Only start if not already running
+  if (serviceStarted && notificationInterval) {
+    console.log('Notification service already running, skipping restart');
     return;
   }
 
@@ -154,6 +161,7 @@ export function startNotificationService() {
   // Set up 30-minute interval (30 * 60 * 1000 = 1,800,000 ms)
   console.log('Setting up 30-minute notification interval (1,800,000 ms)');
   notificationInterval = setInterval(checkAndNotifyFollowUps, 30 * 60 * 1000);
+  serviceStarted = true;
   
   // Check immediately
   checkAndNotifyFollowUps();
@@ -163,5 +171,7 @@ export function stopNotificationService() {
   if (notificationInterval) {
     clearInterval(notificationInterval);
     notificationInterval = null;
+    serviceStarted = false;
+    console.log('Notification service stopped');
   }
 }
