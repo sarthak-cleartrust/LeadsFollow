@@ -186,9 +186,6 @@ export default function FollowUps() {
 
     // Handle moving to completed
     if (targetStatus === 'completed') {
-      // Immediately invalidate cache first
-      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
-      
       // Update optimistic state immediately
       const currentData = Array.isArray(followUps) ? followUps : [];
       const baseData = optimisticFollowUps.length > 0 ? optimisticFollowUps : currentData;
@@ -198,6 +195,12 @@ export default function FollowUps() {
           : followUp
       );
       setOptimisticFollowUps(updatedFollowUps);
+      
+      // Force update cache data for all components immediately
+      queryClient.setQueryData(["/api/follow-ups"], updatedFollowUps);
+      
+      // Also invalidate to ensure fresh data eventually
+      queryClient.invalidateQueries({ queryKey: ["/api/follow-ups"] });
       
       completeFollowUpMutation.mutate({
         id: draggedItem.id,
