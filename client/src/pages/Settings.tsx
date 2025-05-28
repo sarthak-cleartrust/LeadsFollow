@@ -86,26 +86,28 @@ export default function Settings() {
   const handleBrowserNotificationToggle = async (enabled: boolean) => {
     if (enabled) {
       // Request permission for browser notifications
-      if ('Notification' in window) {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          updateNotificationSettings.mutate({ notifyBrowser: true });
-        } else {
-          toast({
-            title: "Permission denied",
-            description: "Please allow notifications in your browser settings to enable this feature.",
-            variant: "destructive"
-          });
-        }
+      const hasPermission = await NotificationService.requestPermission();
+      if (hasPermission) {
+        updateNotificationSettings.mutate({ notifyBrowser: true });
+        startNotificationService();
+        toast({
+          title: "Browser notifications enabled",
+          description: "You'll now receive notifications for overdue and upcoming follow-ups."
+        });
       } else {
         toast({
-          title: "Not supported",
-          description: "Your browser doesn't support notifications.",
+          title: "Permission denied",
+          description: "Please allow notifications in your browser settings to enable this feature.",
           variant: "destructive"
         });
       }
     } else {
       updateNotificationSettings.mutate({ notifyBrowser: false });
+      stopNotificationService();
+      toast({
+        title: "Browser notifications disabled",
+        description: "You will no longer receive browser notifications."
+      });
     }
   };
   

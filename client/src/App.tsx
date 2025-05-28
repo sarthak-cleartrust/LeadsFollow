@@ -1,4 +1,6 @@
 import { Switch, Route } from "wouter";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -10,9 +12,30 @@ import GmailCallback from "@/pages/GmailCallback";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import { startNotificationService, stopNotificationService } from "@/lib/notifications";
 
 function App() {
   const { user, isLoading } = useAuth();
+  
+  // Query for follow-up settings to check notification preferences
+  const { data: settings } = useQuery({
+    queryKey: ["/api/follow-up-settings"],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  // Start notification service if browser notifications are enabled
+  useEffect(() => {
+    if (user && settings?.notifyBrowser) {
+      startNotificationService();
+    } else {
+      stopNotificationService();
+    }
+    
+    return () => {
+      stopNotificationService();
+    };
+  }, [user, settings?.notifyBrowser]);
   
   // Show a loading spinner while checking authentication
   if (isLoading) {
