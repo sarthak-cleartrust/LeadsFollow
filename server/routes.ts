@@ -19,20 +19,27 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
-// Session storage using MemoryStore
-import memorystore from 'memorystore';
-const MemoryStore = memorystore(session);
+// Session storage using PostgreSQL for persistence
+import pgSession from 'connect-pg-simple';
+import { pool } from './db';
+const PostgreSQLStore = pgSession(session);
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up session middleware
+  // Set up session middleware with PostgreSQL store for production persistence
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "leadfollow-secret",
       resave: false,
       saveUninitialized: false,
-      cookie: { secure: process.env.NODE_ENV === "production", maxAge: 24 * 60 * 60 * 1000 }, // 1 day
-      store: new MemoryStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
+      cookie: { 
+        secure: false, // Set to false for now to work with Replit deployments
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true
+      },
+      store: new PostgreSQLStore({
+        pool: pool,
+        tableName: 'session',
+        createTableIfMissing: true
       })
     })
   );
