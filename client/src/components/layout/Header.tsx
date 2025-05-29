@@ -79,10 +79,10 @@ export default function Header() {
 
   return (
     <header className="bg-white dark:bg-card border-b border-neutral-300 dark:border-border shadow-sm py-2 px-4">
-      <div className="container mx-auto flex justify-between items-center">
+      <div className="mx-auto flex justify-between items-center">
         <div className="flex items-center">
           <div className="text-primary font-bold text-2xl mr-2">LeadFollow</div>
-          <span className="text-neutral-400 text-sm bg-neutral-200 dark:bg-muted px-2 py-1 rounded">Beta</span>
+          {/* <span className="text-neutral-400 text-sm bg-neutral-200 dark:bg-muted px-2 py-1 rounded">Beta</span> */}
         </div>
         
         <div className="flex items-center space-x-4">

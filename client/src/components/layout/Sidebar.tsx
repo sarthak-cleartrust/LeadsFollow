@@ -80,7 +80,9 @@ export default function Sidebar() {
       href: "/analytics",
       icon: <BarChart className="w-5 mr-3" />,
       active: location === "/analytics",
-      badge: null
+      badge: "Coming Soon",
+      badgeColor: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+      disabled: true
     },
     {
       name: "Settings",
@@ -98,29 +100,52 @@ export default function Sidebar() {
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.name}>
-              <Link 
-                href={item.href}
-                className={cn(
-                  "flex items-center px-3 py-2 rounded-md transition-standard",
-                  item.active
-                    ? "text-primary bg-blue-50 dark:bg-primary/10 hover:bg-blue-100 dark:hover:bg-primary/20"
-                    : "text-foreground hover:bg-neutral-200 dark:hover:bg-muted"
-                )}
-              >
-                {item.icon}
-                <span>{item.name}</span>
-                {item.badge && (
-                  <Badge 
-                    className={cn(
-                      "ml-auto", 
-                      item.badgeColor || "bg-primary text-white"
-                    )}
-                    variant="outline"
-                  >
-                    {item.badge}
-                  </Badge>
-                )}
-              </Link>
+              {item.disabled ? (
+                <div 
+                  className={cn(
+                    "flex items-center px-3 py-2 rounded-md transition-standard cursor-not-allowed opacity-60",
+                    "text-muted-foreground"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                  {item.badge && (
+                    <Badge 
+                      className={cn(
+                        "ml-auto", 
+                        item.badgeColor || "bg-primary text-white"
+                      )}
+                      variant="outline"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                </div>
+              ) : (
+                <Link 
+                  href={item.href}
+                  className={cn(
+                    "flex items-center px-3 py-2 rounded-md transition-standard",
+                    item.active
+                      ? "text-primary bg-blue-50 dark:bg-primary/10 hover:bg-blue-100 dark:hover:bg-primary/20"
+                      : "text-foreground hover:bg-neutral-200 dark:hover:bg-muted"
+                  )}
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                  {item.badge && (
+                    <Badge 
+                      className={cn(
+                        "ml-auto", 
+                        item.badgeColor || "bg-primary text-white"
+                      )}
+                      variant="outline"
+                    >
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
